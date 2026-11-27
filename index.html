@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Qur'an exams">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>Qur'an exams</title>
+
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Apple system font, iOS controls and Apple system colours. */
+  :root {
+    /* Apple system colours: blue tint, green for done, red for mistakes */
+    --tint: #007aff; --tint-soft: #e5f1ff; --green: #248a3d; --green-soft: #e8f6ec; --label: #1c1c1e; --second: #6c6c70; --third: #a1a1a6;
+    --fill: #f2f2f7; --fill2: #e9e9ee; --sep: #e3e3e8; --red: #ff3b30; --red-ink: #d70015; --red-soft: #ffeceb;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: #fff; color: var(--label);
+    font: 17px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0;
+    transition: transform 100ms ease-out, background-color 100ms ease-out; }
+  button:not([disabled]):active { transform: scale(0.97); }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+  input, textarea { font: inherit; color: inherit; }
+  input:focus, textarea:focus { outline: none; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px 140px; position: relative; }
+
+  .top { max-width: 900px; margin: 0 auto; padding: 18px 24px 0; display: flex; align-items: center; gap: 16px; font-size: 17px; }
+  .top .back { color: var(--tint); padding: 8px 0; text-align: left; }
+  .top .back b { font-weight: 400; }
+  .top .right { margin-left: auto; display: flex; gap: 12px; align-items: center; white-space: nowrap; font-size: 15px; }
+  .top .exm { color: var(--second); padding: 8px 0; }
+  .top .exm b { color: var(--label); font-weight: 400; }
+  .top .exm.unset { color: var(--tint); }
+  .savestate { color: var(--third); }
+  .savestate.err { color: var(--red); }
+
+  h1.page { font-weight: 700; font-size: 34px; line-height: 1.15; letter-spacing: .01em; margin: 10px 0 2px; }
+  .meta { color: var(--second); font-size: 15px; margin-bottom: 14px; }
+
+  /* iOS segmented control */
+  .tabs, .exam { display: inline-flex; background: var(--fill2); border-radius: 9px; padding: 2px; margin: 8px 0 0; }
+  .tabs button, .exam button { padding: 6px 22px; border-radius: 7px; font-size: 14px; font-weight: 500; color: var(--label); }
+  .tabs button.on, .exam button.on { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); }
+  .tabs button:active, .exam button:active { transform: none; }
+
+  .search { display: flex; align-items: center; height: 40px; background: var(--fill2); border-radius: 10px; padding: 0 10px; margin: 16px 0 4px; }
+  .search svg { flex: none; margin-right: 6px; }
+  .search input { flex: 1; min-width: 0; border: 0; font-size: 17px; background: transparent; }
+  .search input::placeholder { color: var(--second); }
+  .search .clr { color: var(--second); font-size: 20px; padding: 4px 6px; }
+  .hint { color: var(--second); font-size: 13px; margin: 8px 0 0; }
+
+  /* iOS list rows */
+  .rows { margin-top: 12px; border-top: .5px solid var(--sep); }
+  .rows.two { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; border-bottom: .5px solid var(--sep);
+    text-align: left; font-size: 17px; padding: 8px 2px; }
+  .row::after { content: "\203A"; color: var(--third); font-size: 22px; margin-left: 4px; }
+  .row[disabled]::after { content: none; }
+  .row:active { transform: none; background: var(--fill); }
+  .row .nm { min-width: 0; }
+  .row .ctx { font-size: 15px; color: var(--second); }
+  .row .st { margin-left: auto; font-size: 15px; color: var(--third); white-space: nowrap; }
+  .row .st.dn { color: var(--green); }
+  .row .st.ip { color: var(--second); }
+  .row[disabled] { color: var(--third); cursor: default; }
+  .row mark { background: none; color: var(--label); font-weight: 600; }
+  .addp { margin-top: 16px; color: var(--tint); font-size: 17px; padding: 8px 0; }
+  .empty { color: var(--second); padding: 24px 0; }
+
+  /* marking */
+  .who { text-align: center; margin-top: 2px; }
+  .who h1 { font-weight: 700; font-size: 34px; line-height: 1.15; margin: 0; }
+  .who .ar { font: 400 26px/1.4 "SF Arabic", "Geeza Pro", -apple-system, system-ui, sans-serif; color: var(--label); min-height: 40px; }
+  .who .ar:empty { min-height: 8px; }
+  .exam { display: flex; width: 300px; margin: 6px auto 0; }
+  .exam button { flex: 1; padding: 6px 0; }
+  .steps { display: flex; background: var(--fill2); border-radius: 9px; padding: 2px; margin: 14px 0 0; }
+  .steps button { flex: 1; padding: 8px 6px; border-radius: 7px; font-size: 15px; color: var(--label); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .steps button.on { background: #fff; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); }
+  .steps button.ok { color: var(--second); }
+  .steps button .sc { color: var(--green); margin-left: 6px; font-weight: 600; }
+  .steps button:active { transform: none; }
+
+  .step { display: none; padding-top: 20px; }
+  .step.cur, .step.peek { display: block; }
+  .flat { padding-top: 20px; }
+  .pick { display: flex; align-items: center; height: 48px; background: var(--fill); border-radius: 10px; padding: 0 14px; margin-bottom: 22px; }
+  .pick label { color: var(--second); width: 70px; flex: none; }
+  .pick input { flex: 1; min-width: 0; border: 0; font-size: 17px; font-weight: 600; background: transparent; }
+  .pick input::placeholder { font-weight: 400; color: var(--third); }
+  .lab .opt { text-transform: none; letter-spacing: 0; }
+  .lab { font-size: 13px; font-weight: 400; color: var(--second); text-transform: uppercase; letter-spacing: .04em;
+    margin: 0 0 8px 2px; display: flex; align-items: baseline; }
+  .lab .aside { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 15px; }
+  .lab .aside button { color: var(--tint); }
+  .marks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 22px; }
+  .zero { margin: -12px 0 20px; }
+  .zero[hidden] { display: none; }
+  .zero button { font-size: 15px; color: var(--red-ink); background: var(--red-soft); border-radius: 10px; padding: 9px 16px; }
+  .zero button.on { background: var(--red); color: #fff; }
+  .marks button { height: 60px; background: var(--fill); border-radius: 12px; font-size: 22px; font-weight: 500; }
+  .marks button:active { transform: scale(0.95); background: var(--fill2); }
+  .marks button.on { background: var(--tint); color: #fff; }
+
+  .mrow { display: flex; background: var(--fill); border-radius: 12px; overflow: hidden; }
+  .mrow .ay { width: 96px; flex: none; border: 0; border-right: .5px solid var(--sep); padding: 0 10px; font-size: 16px;
+    text-align: center; background: transparent; }
+  .mrow .ay::placeholder { color: var(--third); }
+  .quick { display: flex; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  .quick::-webkit-scrollbar { display: none; }
+  .quick button { flex: 1 1 auto; padding: 14px 5px; font-size: 13.5px; color: var(--label); border-left: .5px solid var(--sep); white-space: nowrap; }
+  .quick button:first-child { border-left: 0; }
+  .quick button:active { transform: none; background: var(--red-soft); color: var(--red-ink); }
+  .mlist { list-style: none; margin: 12px 0 0 2px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .mlist li { color: var(--red-ink); font-size: 15px; display: flex; align-items: center; }
+  .mlist li button { color: var(--third); font-size: 18px; padding: 2px 8px; }
+
+  textarea { width: 100%; min-height: 96px; border: 0; background: var(--fill); border-radius: 12px; padding: 12px 14px; }
+  .cmt { margin-top: 24px; }
+
+  .letters { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 10px; direction: rtl; }
+  .letters button { height: 72px; background: var(--fill); border-radius: 12px; position: relative; font: 400 38px/1 "Scheherazade New", serif; }
+  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); column-gap: 32px; border-top: .5px solid var(--sep); margin-bottom: 10px; }
+  .items button { display: flex; align-items: center; min-height: 50px; border-bottom: .5px solid var(--sep); text-align: left; font-size: 16px; }
+  .items button:active { transform: none; background: var(--fill); }
+  .items button .tick { margin-left: auto; }
+  .yes { color: var(--green) !important; background: var(--green-soft) !important; }
+  .no { color: var(--red-ink) !important; background: var(--red-soft) !important; }
+  .items .yes, .items .no { background: none !important; }
+  .tick { font-size: 15px; font-weight: 600; }
+  .letters .tick { position: absolute; top: 6px; left: 9px; font-family: -apple-system, system-ui, sans-serif; }
+  .smallbtn { color: var(--tint); font-size: 15px; padding: 8px 2px; }
+  .block { margin-bottom: 26px; }
+
+  /* bottom bar: translucent material, always within reach */
+  .dock { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 30;
+    max-width: 876px; margin: 0 auto; background: rgba(255,255,255,.78);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border: .5px solid rgba(0,0,0,.08); border-radius: 22px; box-shadow: 0 6px 24px rgba(0,0,0,.10), 0 1px 3px rgba(0,0,0,.06);
+    padding: 10px 10px 10px 20px !important; }
+  .dock .main { border-radius: 14px; }
+  .dock .in { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+  .dock .tot { font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .dock .tot small { font-size: 15px; font-weight: 400; color: var(--second); margin-left: 4px; }
+  .dock .miss { font-size: 14px; color: var(--second); flex: 1; min-width: 0; }
+  .dock .prev { color: var(--tint); font-size: 17px; padding: 12px 6px; white-space: nowrap; }
+  .dock .main { background: var(--tint); color: #fff; border-radius: 12px; padding: 14px 26px; font-weight: 600; font-size: 17px; white-space: nowrap; }
+  .dock .main.done { background: var(--fill2); color: var(--tint); }
+
+  .toast { position: fixed; left: 50%; bottom: 104px; transform: translateX(-50%); z-index: 50; background: rgba(28,28,30,.9);
+    color: #fff; padding: 12px 18px; border-radius: 12px; max-width: 90vw; display: none; font-size: 15px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.25); z-index: 60; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal .box { background: #fff; border-radius: 14px; padding: 22px; width: 100%; max-width: 460px; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
+  .modal h3 { margin: 0 0 8px; font-size: 20px; font-weight: 600; }
+  .modal input { width: 100%; height: 46px; border: 0; background: var(--fill); border-radius: 10px; padding: 0 14px; margin: 10px 0; }
+  .modal .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+  .modal .acts button { padding: 11px 18px; border-radius: 10px; color: var(--tint); font-weight: 500; }
+  .modal .acts .pri { background: var(--tint); color: #fff; }
+  .guide { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; color: var(--second); }
+  .guide b { color: var(--label); font-weight: 600; }
+
+  table.prog { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 15px; }
+  table.prog th, table.prog td { padding: 11px 8px 11px 0; border-bottom: .5px solid var(--sep); text-align: left; }
+  table.prog th { font-size: 13px; color: var(--second); font-weight: 400; text-transform: uppercase; letter-spacing: .04em; }
+  table.prog td.n { text-align: right; }
+  h2.sec { font-size: 22px; font-weight: 700; margin: 26px 0 6px; }
+  a.link { color: var(--tint); }
+
+  @media (max-width: 700px) {  /* small tablets / phones in landscape */
+    .rows.two { grid-template-columns: 1fr; }
+    .letters { grid-template-columns: repeat(4, 1fr); }
+    .dock .miss { display: none; }
+    .steps button { font-size: 13px; }
+  }
+
+  /* platform baseline (mobile-native): no tap flash, no font inflation, no page bounce, 16px inputs, instant taps */
+  html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; overscroll-behavior: none; }
+  input, textarea { font-size: 16px; }
+  button { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .wrap { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .quick { overscroll-behavior-x: contain; }
+  /* where the mistake buttons run past the edge, fade it so it reads as "swipe for more" */
+  @media (max-width: 1000px) {
+    .quick { -webkit-mask-image: linear-gradient(to right, #000 88%, transparent); mask-image: linear-gradient(to right, #000 88%, transparent); }
+  }
+
+  /* laptop: short screens - keep the whole marking page above the bottom bar without scrolling */
+  @media (min-width: 701px) and (max-height: 820px) {
+    .top { padding-top: 12px; }
+    .who h1 { font-size: 28px; }
+    .who .ar { font-size: 24px; min-height: 34px; }
+    .exam { margin-top: 2px; }
+    .steps { margin-top: 10px; }
+    .step, .flat { padding-top: 14px; }
+    .pick { height: 44px; margin-bottom: 14px; }
+    .marks { margin-bottom: 14px; }
+    .marks button { height: 50px; font-size: 20px; }
+    .mlist { margin-top: 8px; }
+    .letters button { height: 58px; font-size: 32px; }
+    .dock { padding-top: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
+    .dock .tot { font-size: 26px; }
+    .dock .main { padding: 12px 22px; }
+    .wrap { padding-bottom: 110px; }
+    h1.page { font-size: 30px; }
+  }
+
+  /* phone */
+  @media (max-width: 600px) {
+    .top { font-size: 15px; gap: 10px; }
+    .top .back { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top .right { font-size: 13px; }
+    .top .exm b { display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+    .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-bottom: 120px; }
+    h1.page, .who h1 { font-size: 28px; }
+    .who .ar { font-size: 24px; min-height: 34px; }
+    .exam { width: 100%; }
+    .steps button { font-size: 14px; padding: 8px 2px; }
+    .steps .sn { display: none; }
+    .steps button .sc { margin-left: 4px; }
+    .marks { gap: 6px; }
+    .marks button { height: 52px; font-size: 20px; }
+    .mrow .ay { width: 96px; font-size: 16px; padding: 0 6px; }
+    .quick button { flex: 0 0 auto; padding: 14px 12px; }
+    .row { font-size: 16px; flex-wrap: wrap; row-gap: 2px; }
+    .row .ctx { flex-basis: 100%; order: 3; font-size: 13px; }
+    .letters { grid-template-columns: repeat(4, 1fr); }
+    .letters button { height: 60px; font-size: 32px; }
+    .dock { padding-left: 16px; padding-right: 16px; }
+    .dock .in { gap: 10px; }
+    .dock .tot { font-size: 24px; }
+    .dock .tot small { font-size: 13px; }
+    .dock .miss { display: none; }
+    .dock .prev { margin-left: auto; padding: 12px 10px; font-size: 20px; }
+    .dock .prev .pw { display: none; }
+    .dock .main { padding: 13px 16px; font-size: 16px; }
+    .dock .prev[style*="none"] + .main { margin-left: auto; }
+    .modal .box { padding: 18px; }
+  }
+  /* boxes: sides and classes big, pupils small; a green line along the bottom = how much is done */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+  .tiles.big { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .tiles.small { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .tile { position: relative; overflow: hidden; background: var(--fill); border-radius: 14px; text-align: left;
+    padding: 18px 18px 22px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+  .tiles.big .tile { min-height: 150px; padding: 22px; }
+  .tiles.small .tile { min-height: 76px; padding: 14px 14px 16px; border-radius: 12px; gap: 4px; }
+  .tile:active { transform: scale(0.98); background: var(--fill2); }
+  .tile .nm { font-size: 20px; font-weight: 600; line-height: 1.2; }
+  .tiles.big .tile .nm { font-size: 24px; }
+  .tiles.small .tile .nm { font-size: 16px; }
+  .tile .st { font-size: 14px; color: var(--second); }
+  .tile .st.dn { color: var(--green); }
+  .tile .trk { position: relative; display: block; height: 4px; border-radius: 2px; background: #dcdce1; overflow: hidden; margin-top: 4px; }
+  .tile .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--green); border-radius: 2px; }
+  .tile .bar.ip { background: #a1d6ae; }
+  .tile[disabled] { color: var(--third); }
+  /* surah suggestions under the box */
+  .pick-hint { font-size: 13px; color: var(--second); margin: -16px 0 18px 4px; }
+  .pick-hint.warn { color: #c93400; font-weight: 500; }
+  .pick-hint [lang="ar"] { font: 400 17px/1 "SF Arabic", "Geeza Pro", -apple-system, system-ui, sans-serif; color: var(--label); }
+  .picker { position: relative; }
+  .pick .caret { width: 9px; height: 9px; border-right: 2px solid var(--third); border-bottom: 2px solid var(--third); transform: rotate(45deg) translateY(-3px); flex: none; margin-left: 8px; }
+  .sugg { position: absolute; left: 0; right: 0; top: 52px; z-index: 40; background: #fff; border-radius: 12px; max-height: min(360px, 52vh); overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,.16), 0 0 0 .5px rgba(0,0,0,.08); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .sugg[hidden] { display: none; }
+  .sugg .grp { font-size: 12px; color: var(--second); text-transform: uppercase; letter-spacing: .04em; padding: 10px 14px 4px; position: sticky; top: 0; background: #fff; }
+  .sugg button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 8px 14px; text-align: left; font-size: 16px; border-top: .5px solid var(--sep); }
+  .sugg .grp + button { border-top: 0; }
+  .sugg button:active, .sugg button.hi { background: var(--fill); }
+  .sugg .sno { width: 28px; color: var(--third); font-variant-numeric: tabular-nums; flex: none; }
+  .sugg .en { flex: 1; min-width: 0; }
+  .sugg .now { font-size: 13px; color: var(--tint); margin-left: 6px; }
+  .sugg .sar { font: 400 18px/1 "SF Arabic", "Geeza Pro", -apple-system, system-ui, sans-serif; color: var(--second); }
+  .sugg .none { padding: 14px; color: var(--second); }
+  /* Read Book "any pages" rows */
+  .tabs.pm { margin: 0; }
+  .pages { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; border-top: .5px solid var(--sep); margin-bottom: 8px; }
+  @media (max-width: 600px) { .pages { grid-template-columns: 1fr; } }
+  .pg { display: flex; align-items: center; gap: 10px; min-height: 60px; border-bottom: .5px solid var(--sep); }
+  .pg label { color: var(--second); width: 44px; }
+  .pg select { height: 44px; min-width: 84px; font: inherit; font-size: 17px; border: 0; background: var(--fill);
+    border-radius: 10px; padding: 0 12px; color: var(--label); }
+  .pg button[data-pv] { width: 60px; height: 44px; border-radius: 10px; background: var(--fill); font-size: 20px; font-weight: 600; color: var(--third); }
+  .pg .rm { margin-left: auto; color: var(--third); font-size: 24px; padding: 6px 10px; }
+  /* Salafi School logo at the foot of Saturday School pages (kept clear of the bottom bar) */
+  body.has-logo .wrap { padding-bottom: 8px; }
+  .brand { text-align: center; padding: 28px 16px 40px; }
+  .brand img { height: 34px; width: auto; opacity: .9; }
+  body.marking .brand { padding-bottom: 130px; }
+
+  /* phone, marking: everything for one surah fits above the bottom bar - no scrolling */
+  @media (max-width: 600px) {
+    body.marking .brand { display: none; }
+    body.marking .wrap { padding-bottom: 96px; }
+    body.marking .top { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); }
+    body.marking .top .back { padding: 4px 0; }
+    body.marking .who h1 { font-size: 22px; }
+    body.marking .who .ar { font-size: 20px; min-height: 26px; line-height: 1.3; }
+    body.marking .who .ar:empty { min-height: 0; }
+    body.marking .exam { margin-top: 6px; }
+    body.marking .exam button { padding: 5px 0; }
+    body.marking .steps { margin-top: 8px; }
+    body.marking .steps button { padding: 6px 2px; }
+    body.marking .steps button { flex: 1 1 auto; min-width: 0; padding: 6px 6px; }   /* long surah names get the room */
+    body.marking .step, body.marking .flat { padding-top: 12px; }
+    body.marking .pick { height: 42px; margin-bottom: 14px; }
+    body.marking .pick-hint { margin: -10px 0 10px 4px; font-size: 12px; }
+    body.marking .lab { margin-bottom: 6px; font-size: 12px; }
+    body.marking .marks { gap: 6px; margin-bottom: 12px; }
+    body.marking .zero { margin: -6px 0 10px; }
+    body.marking .zero button { padding: 7px 14px; font-size: 14px; }
+    body.marking .marks button { height: 44px; font-size: 19px; border-radius: 10px; }
+    /* fill the screen: the page is at least the phone's height; the keys grow (44px up to 66px a row) and
+       whatever is left goes into the gaps above each section, so labels stay with their keys */
+    body.marking { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+    body.marking #view { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; }
+    body.marking #view > .step.cur, body.marking #view > .step.peek { flex: 1 0 auto; display: flex; flex-direction: column; }
+    body.marking .step.cur > .marks, body.marking .step.peek > .marks { flex: 1 1 0; min-height: 93px; max-height: 137px; grid-template-rows: repeat(2, minmax(44px, 1fr)); }
+    body.marking .step.cur > .marks button, body.marking .step.peek > .marks button { height: auto; min-height: 44px; font-size: 21px; }
+    body.marking .step.cur > .lab, body.marking .step.peek > .lab { margin-top: auto; padding-top: 2px; }
+    body.marking .step.cur > .lab:first-child, body.marking .step.peek > .lab:first-child { margin-top: 0; padding-top: 0; }
+    body.marking .step.cur > .mrow, body.marking .step.peek > .mrow { flex: none; }
+    body.marking .step.cur > .mrow .quick button, body.marking .step.cur > .mrow .ay,
+    body.marking .step.peek > .mrow .quick button, body.marking .step.peek > .mrow .ay { min-height: 44px; }
+    body.marking .quick button { padding: 11px 12px; }
+    body.marking .mlist { margin-top: 8px; }
+    body.marking .dock { padding: 8px 8px 8px 16px !important; }
+    body.marking .dock .tot { font-size: 22px; }
+    body.marking .dock .main { padding: 11px 16px; }
+  }
+  /* classes: two boxes per row */
+  .tiles.two { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 600px) { .tiles.two { grid-template-columns: 1fr; } }
+  /* office (admin) links: iOS grouped background, tables as white cards */
+  body.office, body.office .dock { background: #f2f2f7; }
+  body.office table.prog { background: #fff; border-radius: 12px; overflow: hidden; }
+  body.office table.prog th, body.office table.prog td { padding-left: 14px; }
+  body.office table.prog th:last-child, body.office table.prog td:last-child { padding-right: 14px; }
+  body.office .smallbtn { background: #fff; border-radius: 10px; padding: 10px 16px; margin-right: 8px; }
+  .meta .who-for { color: var(--tint); font-weight: 500; }
+  /* each school link shows its own colour at a glance: a band across the top and the page title */
+  body.school { border-top: 5px solid var(--tint); }
+  body.school h1.page { color: var(--tint); }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } button:active { transform: none; } }
+</style>
+</head>
+<body>
+<div class="top" id="top">
+  <button class="back" id="backBtn"></button>
+  <div class="right"><span class="savestate" id="ss"></span></div>
+</div>
+<div class="wrap" id="view"></div>
+<div class="brand" id="brand" hidden><img alt="Salafi School" src="data:image/webp;base64,UklGRtAtAABXRUJQVlA4WAoAAAAQAAAAjwEARwAAQUxQSPcYAAAB/yckSPD/eGtEpO4DEttGkiRJERn7Xff5b3BWZc1nQET/J4CPfd+3JD77/5XyUnqtqtopCQXSM7TTi0lS0tSqZWB7dg+Sne1H2V4pSCRNwebwaGkDYabvZ9gK3Y+QJlK7rutIaiDW0kqalKWkFaJCEi2qJJJWhZQgXxc2hL2UowSqZWMPDFVxgqQBG9rt+7raaRuu6qxjq6qqAWHtzn0DeL9K8M6AbbO2Lf24z2Krb2xPbvsh2PbEy+Yu6QHe6YCGeRGmz8oCSDaQRNRRFQQdBKiCRKpie0aCtJJaBJEEM6mBNAOJApDE8AnQAAGL+Swsa7M8SEZV7QMnWdyW6pNFkuqj9SaJDm+0tS2Tk23b2vf9qO5Ix90IJISEGIHkCn7x4O7u9325u7thl+AOtwGXCy5PsPvG3SWGhXhHoZMuOc9j/1FV53l2hcHonxExAfRyq6YOHTtNnzZ53IB2TbZsWLnktUVLHYzo9LqrATMPOmBySvaupU898Ahg0ssmBmO/fmp/gOgIiIOjAmz846EG1qsWYOoV6x0SEVUhq3sUc3/+39sQ7TVTYdzlX4YULVGoR1G+eSpuvWSGfH2tk6jRg9GZ9e+7IdobFpj2sHtNAz0sKXv9GKzXS5TTN3otOj2v4PeOIvR2OdMHI0JresLU8fR263akSssKDB9ekKiFEILpxwVRE0DlY5doB1FoZaG9vQgzMgZtMRVsm9AQFKwgCUpzNWkhMUw++gzV4kSShKwOSI8hsDWXAWHSpOEd2rV66TIwaal6aT0xMqqpSSYxYNAuxwzqm2xatnQTWOt8DAysoT66IyICEN1FewSodOJZROGgaxdWS9Rvfe1nO4K1jjL3oRdOQ1tNYfyn9poyKH4ZFfIqjPj8nSvdqV/z1D/7otIaIn0ufvmG/iIfbcqXX7l7R7SgwELq1WgYEzRQn3qPOJ3L1TPA4U+4e6y5I9KGd/1hMNYyoi+4bx2BtJYx9NINDuCzYN4tD1/QgTQx+v1stbsnZQexAG+eBtoSgS+6+7cIH2nKru7+V6wYY35NHeh+fs3iZcvXd3VVCH2Gjt95j/mE2BM4r6+X2ETCle5J2Z3Gsey+aB9Ciwh9VyRJMh1tKWXuYvcKJcF3Y0aXu99p2siY9aJ7peruNKyK+00D0Na4NOlKrvyIM45NtyaPIIWIdiw0B+8z/OIHybnDb5bT0w/RVJlAGt03LHj93U0+fPIeu3la9Ymj8dYAUlOPtLQyY4NXE6e8uusbwkXendR8JlqnfGKjVxP3xX/+5aquPuNm7jUWEqa205qJmSV81CdqllKscblHEIAvjafNTBUQIUZG3OQ94tJ9j2iDZDmpsvxro2k6/2/uNWwz2ioCQkuL9nvNa6n/79WvAoHrkqonvjsGqI5832vR7z2kncaDjv0x6nhZvRUEkI88AaQYY36aOPXuzBmCkVEDXN4jRHt0sQHGrSi8NhpUGyRwZrfDB2+KtkjrB37q1dTPp96MI9xTf6u/CGDc5NU0fg2wUOcpA58CWNLFx16VRz2haUq/bjQDqDG7R4CrMPAHHrGU4RspCU0tcFg1jdyDfTQJQ9fFqt+CSXQH5Ufrq6/MQwFlRpIm/n2CCY3Fkg8quPA/2Mcc41hPvBlCZ4dKFow5e7v2QKqvlFSIk/ci8O1KIHMbX/ZKstyQj6TA2V6Lm0ar0VgYuXNAAAInWWKvXhRSsqrqLLb4hYSPOaI/czI7v8OaCWDc4UkPgJxKgPkh0SWPC9klcLP7ZRgfUTfHbv9PjOYGKPXKnjh/As+ExMljvfuT2Mcb47Dd3LLZlgmijdoQCHJKtuheJyLSINVnVGEHUl5ONAciHHS4IB9NIq941U+SkAFRoV7Q7VBexcnpbDphJsLHnTvdyZ76r7E6Yex+KMLoD92bpCrkFt8Xox3YJLSiaAhmFoJJa2gIZhaCSR5hSKfHOAvNYkGblNpQuihWyC4agpmFYFKQhmAgPSAWgpmFYFKYWAhmFoJJSyjbd6M5Ylw9UAVA2e9TGMKTzaLy7qvvbfKOYcO3G9O/T4PE/xPjA2CEewFmOSSQ1bTHxISMZlk0tIVJ/ZGtG4M4EOsEkEZSJjJYJJ+bklkCWYPkCpiQMUgRGshqWogaWYO0QOCbnpLX5dIPzAGUT32XEPgPj4149LB+NB1ylXud+9qB8A6BeX2QfHkNmPWJmRP7JhuWPD8cTHrGgKlnXTi5X9zw1ovPrkaliQAML0GyNqGhgHDQ13dCAIy3PbKn09MG7Pq5Kya0lTsXPf1cBcvTJjDjM1fe2lZe9eZuApZLDPrs9eUrx7cla5e89MxGTHKJwdBDdpk6MpRXLXq+HaznlP8t5MM7aWz87hv04RdO4yUCJkAbO9yf0jj1I+HpbkvHnRLbekaUQV97LgqN1/7HPLCeMPp8+vGqOw033fdJsAbClLPOPuvbAm2f3SwOPI4Yn3NfN0kUCDwsytkDUusZo8+XnnV3Gi7874FYNoVTH03cHcCf/9oALIfCpAsXuzsNV9+xC2gOg3k3rnaaLvzlOER6SBnb5Z4L1zWRxATE5IHTkW818t1MggAoOy13mtbiZeiKBRL9D1MpaQ8InPGWe1qTIKSpuqfXD8MKE+XI19xjuWJKmkob/teJGKAyfaO7O9DnShqunSiBh2OXn00AlH+WLRl7radBesA4+DX3tFwJ4mkaAouPxrKEuPMC96RSi8SE1H3xEVgmpfSzze617koQT1MrUb1iEJYpMOo/U/dqagFP0+De+S3QnjGO84RCh+6NYybK+GXzOL9B3OU4L1Ev0udFrzZL/VmROO+YVKV7PDU3dy9EaN9/ErW0HdKqtoNXoh8wFSnK2XcGSdXdY0XbgWpkv1kIBL7sXSUXgIoDko48hRJRSq40NC7xqhJGgAWVYozvu1er7p7UrA0SZ8qumDTbMH+DV9zdu72P4NWa+zexDMYOj7pXEnevJdYGXqN04PZkNaYeoLESHappKUBScT9gOD0b2AMvhqGfPmsQQIkzVw29wwXcVt+n9BuLELiBrMLUCSkcLVGYcOoc6jWY5BENO5BSYuGtj7z3YWnEnCNrnlQZOwAvRmwiKSV/55Jj3vogDJ15+NH9QmTkQBxlVld/GrfTcNNkMQSExqID3nBx9vzKSOotmOQJ/MbTqvvLPz3w/e62sXsdvzuk9EUbGQff64m/f8XxcybGwTsdsNpjkvpXsCbKlHe9VnN/6of7L+9uHzn76MNMa4zum8EYMJok8eTeu15aVes7eo8T3Gs1xgnaE8ocpBhJ2WPZdcdvZ8BNN2yIBpGnu+KwEwcJau3vhpjFB+yMwPaow6evWPD4kpUAapJFjA+JyoqLflGl8Zw7PBXiarwIST8gCpu+0UHTKb9AJHonIMzc3dJREco/2awO6ROIkl2ZshwHX/unT88ZQr1pJuPzXkt85TmBpif+AXE+izUQdh/q3T8aTNORF7mnSboH1kB16GKvJf7SUTSf+0tUqK3FGyhzI6J++240P/IVT5wtH5oUJ5QmFYVI6u5dCx++86GHh93lKThvMuIHI1AzfiJO1sh0wNmAeQ2FLSvuPP/YsYBlML4HsGhBleAOqMMPHVi2VD2f8RjA2/dCMAfUUx5OQDtfUUUAhkeoXlmhoZAHZae1lGLN3X3Nczd/c+9+oNpMZerWJPFXJiLBHERSH/UuNV5FG0DqK3eHYKogAieW05o/X9IGxt+8VvMb+yLBHERi5EnceXuZ1okOWAzOt0HVHURS+t/iwAtYTwwbUxhoWku84ddGVsSBdXLBDCkBX03JBlMBnCeWuscywQA2P/bHW8sqjVSmdquTrCOkTmMzvoY752O5VBasD46spSQ0VeUDi5H71hioahwIyJAPxIEYyW/0v6TsXitXote/c/lcsGbc6pW4fBwlmgf63ef+M6yRS2U+JaGptHGuJ4mfTACMo7yW+DVgNDcog3BzYoBxvruzGSOhaYA/gfoeWGHK6I4eqHd3PN0QztcU8Xk/+uv9MODE41WFzMLEBsp9X3vRHUhSLMAbF4A2MP7s0XfuwJ2MUmI2blu2Q/ME/lM87jAUJ7MyQ9zSSzCIIACpU7zCzKtWu7vHanc5dY//nIE1MOamaeJHUCKrUvr0qQiNo/6WEplL3OOVuAAF1F6IVX9UTMkqym5EW3mLCMr4D1NnNupkVe2zC6ndjxZmDCbS8zX/Rv8PzZG2vjO2jJy95/44uYfVNZQ9frr3tDFtQOJq/HUgCiiTyzFOOAAhu+rgwz36rwg5hKHrQxx8GHklLZ3oUf+nrjXFYPgp1z7b6fXVavQPP4fVBa7zst9HILuQ1W3TlarZTA7wxLeMRTEO9CRWZmJkl2TUYY78kkDgp171YzsiOY29p8cQ56DF9cdbII1vc60ksvbXZ10CEJ38HU2iAfQbOWnmPvuMIZXoTw0WhcD3vcz3cfKG+Lmxtfh6kByBM8X5Tp8oObD01Blp29qBSIuAGsCwGcf9+qFu9yRx/ykGQt93veaHSx4kWLPIs51KdqH9Xa/50RiBG2K3/xUjr/r3hlbDQ6iIvhgr2306tTwov6Dm5xGKCrTRip76/r+vqf746ImV4CJGbiE0AbGg1A8+4xmP0dn8oYGywMv+VUIulb92l5g2zTWb8d8e7e+ENI/IgDUhHTkfbRkQC0L9Tr9eD5rwLqDMnRjD6g4kT2bnbcmDVV4hZWdEkrCfBG6SkMtkXkx980iMHWZQ2vIPiblMbkI4iFQKk5YgkT+vvVeXPvBNbxNaUtSCgX4/psDtmNB/pafpbDQXvPeq1HRXcoi8jHG/RHIbT1FjDtJC9aIWFHZ4Dlw3PSgaOJcaz6H0aMXJG3gXZzQI47cjbHwSySW0v+uJ70Mbs0s1eWkF+fBHkxJThnlRRqU1PGxsu1ou3XtIFIp1khwNxZTTokdb0SHGjlX31R1IPuN1IpPILgxZS9j6Lp4vyKvAjniLNdTAsi1I1OtXhsCvcN4k9EyBgc1AR92E9oQlG4T8yv1e8bPpw2Qir2MU+H6n+OBxFLcFaQWc+Q+vve8sp/iuIkDa+JWAnkgb8zzxF4VCVwHDcijbdcN6o8DACmAE26hJn+kebfkvKXEVsHobqAJ9cBhOZC1WgHGzd/u36cNIYCUFClvXkcoAilY2oS2R6CHVH7OvaHHri0Gs7zJL/RCENpwnkEKqQFsOKKlTS4upIrTh2waBE1wYPwclABW2WaENqFCkUQUMaAO2FgFeA7QwYXUX3grCfG6c1j9KUc57BRH4My6zSSmjvCJIEX0BzZW40F4qpi+gbKsifd+3hOkIVaD/tuNsBfoV1A+oAVuBgUUI0g6kPbB+VavsPIDZRIpfVJg8iTIspGwoK52DinDGkd/Z5DB8CFKATGCbVm4nMgZYDUyQbQY6McZIWoAyFmUdsAaYUMzAkVjcVBhae7tVRo9kGsUrb6iKFWGsQymVnFVrSOM8sXxRZqH5ZNMWau2zRfMpc1rFRLWIwDU4HTiLUWZ6uq04y7caO41FcgkDphJ4m8hSArtImk+ZNDzKhhV4UYGXW8TbxjEIKcrlwzcjEAtRIKZY5XVP/EeEXCrTqjEfgRs85Ugsl8jw3bHWqJci5DqgjPNCrcS8seg2IqKveNXPlJDL5CBPfP0QjPFbPVaniuYKHCw1Xt+shRlPIa1AZCRv44Wx+P1ZPxt9M5ovyBhS1ldFWCDqC0sqeQIXeY0iTpTAiYNV8wS+PjiVVhA+88i/ZqD5lLsRVhPl7Veodpzk2wqBi73sD2P5uMXL8S4U5bFY9gsIeUTsXIQHKU55eot5KzgjWErh0R/3P82Et5B87En0N7DIv7aGmn+FUg6ViZtjbOSAaAORgausNuI3lHKIDlzuQgsac9x9YSlIHpGOVQQW4uZ/EvFv9nfJISYtYsyLaeqHE3IYs8ox8ZMJBL7s1bh5O9EcITl3ehpqfyPSUPOhK58jtgK0sRwpSmUB5Tlp6dXHxHOoDjgVkwch2vt/lGq6aUdCJjXu9sTrnMpmog5BAALXCbGyB6VMUuIGj9oKyvRqtew/pE1ylDjLE133AjGVmzZYsv35aZBMBkhroCzwanxnKJZJVZ7walzcRwSRwati1e9GNFNIxl8Uo962yCJsxBimno/b8dZw1mEFuXY+ys/mSdDXKx4kiwau8FpcNxRBZcIHUfX9LkSbSICLvRYboP4WCXOkVCcy+DMu2rkJtIkEYQmutKTxZ68mtRNRy1TivvesNvx3GBjf9KryKmbNNDBwbkBaw5ibJom8XaEkTSTgb6DplGPdAOMLniqLSFW8kUDX26rpMdNEUcZtdd86XjXf9t3mLZHS5Xgxif8ndu9pRBi4HVgwFVENBj/ypOo/xQDjSwNSKE2kpsHMgkHHjV51b8ITwDlYKRiY7zc+FXQiNQKOBAhDQaQ1VCZsiElMvgUEUxFRC4KsEEvPnRoVRO1xRxgCBBwJCocu9QcHiLQExgVehX7jwIKZBYNhA8A5mcamD+IwbDCJiYN4yhiD2H40Bog8HSv+HdpD0EwYdxJbokw5oeDo+2LaMRPgE98dQcbpf/O05i/3UQEw5gFMOm0Kjfud/qaX/c1/eayL/LNWSuf/iObzAcacPItIfemYZ4msupnYCihHxVhz/7/DA83t5DEQ2451AVAmrgBhwf5C48mXulf8WKw1xOw+B6b/fByNOz71NsC0Ia4NVEZPQmDvEwZ+QMNxJ+8EMBcTIPBdr8YN8wAkx2EiLdFFLRaU6jOqEPunaMQ7//iZPcYPGzZ+/qdvLXtS9ZU7odSLaR/UKX3+3p+cdOiRn7n+LfduXz/1101s6c2auj944W//TQSB/pg75172izc+sBGXv+7uDL3mkR7xDBinV7xac3/5wmOmjxo2fPIBP3necWE6TZXZDqn7Cxe/1Mmgn97d5bHi66eI9pQ3QKRjARrxjbd977hDjv7ify9zjwIdkabK4BScyb96+Ol3q/0n7f3/BhCNtnYXAJFhq2PiW2+64De7o1kQfUHSnlPWo1KUnUogwpY3MKm4O+Wy9+kLXon+5nSMxhLjcowqzSvRX53N1SkRwHXY/mAGfjYBUVYmIkk7TavB39mPH6bl2EQcXDKpE6URxicXupdr7p52V6xfCRIPVNSlEcakJ9zLiTuNK9EXz0MBJOKFSMS1EULpKvdaxd1pWBX3W4eT1Rj3/92rFadp1YzfCUJD43hPq+7uG0eLZDGO9cR7ypV1tFkxqb5aUqG+6/aXcK+UzQRPU3WvXT8EI/MDzxLaaqmIY8G3XDwAvcijVoBIHBkhjYlfQgCURx8DkkTE0RLJDSPQr/tWryB1lZJDOYNQkahbmmAMumiTeyyXE4OYeElZ9lR0MhptP1znHiteF4zq9cNQ6svqUiuioi7dSAMEjnzO3WtlxN1KsPTT5FT48rvuXktFHAvw9M8QoanxxdS9Vqn6XDQLKo960lPQ1Ul/QwqxYzHqXbnzwjvWu9N05fVzQMnqygMX371hKA2X/GEqBJn+Xr8VN0qECOtuP3kCLJ2JAghPXnzOfiNouOye6yDIhNd8/ZXiEHX5dcI1m9WbIBev7/Pcg5I2QmHij5+tuTsN/cXLbkfIrDDuh0+XnYZL7p4FChDlpnf6rrpFYp4of36976prJTZCFDvpttXu1G9+7m8DUMmGCIO/9OCmQTRc88RNt7uR1djn9k3u/td2JbMxP028h5w16xlCpMDUFhxqNHYhYcRh3582vEO3dL7x/GAwIXf8y6dmThmuXWsWvg4mCEP3nfMykYadHZOG1Dpo6gLDpu80srSlc9FrWzBB6Lf3uIeIgPsX5s/9AZGmKQt22WffDXgTxIBpZ174t0F94qblLz/zygbEsyEGTD5m+0G+ZfmiRRVMaMDCXffd9SXysWz+Pru+QDMwYMie/zaqLVn/zmurwMhvwJjpOw6zcueSNzaCkd1g9Cf23wUkG8blnvbY8jLjC/FY3XWxNoFoSmZT8ospzU0BBBAai6UA2gSMlKbmAAIoGYXMCgiZNZA9RPJLIKMp2YUChdxiSnNVoUgJSnOV6DkwBRDyinYsRHtqMWxPgeJ9D3chqyMW8IgoLhQsKnXRaSwmZBQRhMyiUufRaSimNFclp5qQW0Mwd1SI7hSrJnXRncwmFCqWBxALdR6dwkWlzqNTpJgp+Y35k1LpEVgEOxcBB9A7HZhXitITypv02RXNJcwY5torRWAaPemavMXUSZ5LGDE+Cr3T4ozqEVY4h5CSu30kQq+1h4D0wELsDDSHQ196tT12IV7Ya5xKmsOpVOjtjsuwWIzwfx0/dyWrw7p19HoLb2zCvQCXrXu+KmROjUXL6f125cWXCKkXsGYlniW6VR5bg/d+gbPotk5C6jnqhebRjf/9NuL0irv4P/6ylRBRyRZp7FGUV393MxrpLQ8w9YoNDomIZqh3j2LwwpVtiNKLLgbjvn7q7gpERxAcHBVg4z03P5Bi9LKrATMPOmCXcUbmrqVPPfBIJ5jQ+64hdejYafq0HccNaNdk64blS15btNTBiE6hAFZQOCCyFAAA0E4AnQEqkAFIAD5hLJFGJCKhoSnS+9iADAlmEUBKt0pL/ABlWi8wP7E9Zfv/Nt5L71/nmTvqa7G83F/D/VepDzAP8F0DPMB+wHrG/7z9yPdX/ePUA/nv9z9bL1Ef7R/y///7gv8f/tPp4exX/af+z+6nwIfyz+7//v2AP/j6gH/q4kj+6fjB4Yf6f8ouyf+Ge2nOYj8fKvzznn/rO/HBE/U9mLq/mBeuP2zv5dRTv77AH8n/rHpN/sfCE+uf5r9h/gA/kX9j/Zn3Wv77/2+T782/0XsA/yb+uek37Jv289ib9ff+4c6wdbVB+IeuF6uop7ckFSPRXOXTmpjCxLfbY400H7N8j42WBGOiYJSwRfsbM3ZC3QGq4/FJ95B1x8BdnJ5RTC8NaQyJSZgVGd7BwTO3YG5t+JiYMYvVPk/xSz4QB7P7VpzzFwHZjhJCos+2hTlhG8fqOyePHJcAJ3qXBD+E1WE/9J2wh/EoYTpxZQTfxm7nnOIHRX8S2MocYrZ2bT//K0NG13wnetmGdgHCFEK6ebElqxT44jB79tkdN/GZvXkSYYVc8cLRjGaF/mWuty0Xq4Q2ydO4/tzuEjIlkhSKf+E9iuFFV5yAU70jMs6RQNFeCl7gvArbJ6slwamfONdnyaFEKFpbOfQ6ataIy4Fq8qmyvn79hPVCEqrqduC8oXILJed1jl4C5Wo7PDHG3IGdm9VLCz7BNtN445+J4IYtkP07zi5NKT7PNaj98REz5FeD8yNYzAMraNQvFpCswW+yF0gJrk2am2AclPtuC/qTPj2vYH0bDzJINRJPenFKkPm5086zkWYHrvcXRI5G8XQSfQjFZnui3+RApPoAAP6x58FkoyZEtqHr3Q5u23WVx2jE8D+JdTN92MY6nUEm6cdM2FJPbcNczubrvICEYpweubfWJEEoO38HyEpXtgQUdfUTtHP9CZrLmCOmVnSe/yXOxHGiQEHTSXpCiSf5eOleX7WaKR7K7EmHxRtC33g6NxKo6nH+I3KBv6az6V9iVlStJaOsh65r9RMtEXWLq94M+RYMsDzeHq427oHcL4YsUzr0oYK2ljfrx95mI5G/UwNQj32eVvAhTLY+nm8tDbqkvIVYNmOmka7o9OOjguZtW92EbG3Zv12jQK3LD1HUDtsXsAnD8dUfxnq2pxWtQ9cwtzrjAPxvV2LyNcgTylsPWDhIbwMU1U5zjj+w+OBjLc3aPTxrPSpe1++g+HhfJYiKjZr7R21C+ebbsLbOOtlUKzcfzMrMuC3OHMzBLbIXMiCYAAl6Jtn//tIX/RQpOwFf6oFxs7hbsjlQ96yqYJr3F8pD9fg+QU+ofckZx5FAFbThG40v3dnrnKsqzfFwrtrknIsy2u8ST63jj35GBbxkqAY/7n7UVgHvLRGX7ipSE5H5PEErl77ocCPCo9RR7SKd2BNtCSLHbp9RTRAiWn1+52ztX0Rmq0zIglLuW8jMPptQmuDBEqvet0NYUuV4OQ7axQWTf0thlWlwHu/sVSS0Fio0m/8riytpyF2mkDNFsXWBmOYypNr6wS96OSjEY/960PuwoPsbHUoRoHenyt/AskEnoXpp75PSdAQjJUj9ybXmI7gE/mcalngVVRi/AqDME+DzefsyNl9yOh5BVTOHPjqMu6gYVNXSkmZyjPI3T+SNGQhFs+GMs7YOdDIiWivr/LX8MK1fGlp+CC7XXSAGe4Vfx+l1DKoyuIxUKQ/d74dCRQIJ30qHTS17HIfNWhY+itC8nNwupf0Vrk/IxILYAC/2k3qmtmr6+9B70eezLENhlM+LFUL5Jneuehw1yvdI0p0FlFMH3YyL5kTCHD1rCOhebnIqZBZZ97GbV9WaHZ8Mx8KAu0sroGwhbT/BoZaLRhsPhper+H1806sLmNCIjybsz0+cQtLePC1AzfGWWSlmBrAD1iqqQ6J8yo3E6r8yLuIgXyUQUCxvIbcI8KDmlikCiW2XylT4xt5LnJRixJHQQk8dJyXidvvTHxgOywTTRltXRQb6sdyQUCz/V4Lkh8mxGBHWbUAiO6W3EbbZeKZi0zwUw7BIiD3S0zagQiC6dAsLw5ZgvTg1W76q1VuoqOzVWHog9keSUiS9qmP/8aJVoXTTms14jkjTgcrNSv0s0woh7pSXxtnW+yIrGgaQNh+7VQ9by5EpLSDHnoL76Z8cMxtK/uQQqPjdgGmEkKgHBD76tYXzWUThS9EIqBQhIjZWpJR5qBtbKMTFYm27mZ8H/AwN+VDvUHTdR72vOYco39tAE+rqLjtpSSbEaxBN1rxmYWoloEJADoyOl5EcuPRearJlP7UkpPQVJvaMofDGnwjwqcc3xYtjasPtUDWhhpFkH0JvjyMkexyBm971k/4yeGreugiajhXydrubGHQxihUqduF49eomo4cEEhNZJj8PWnE2qWvbDO3TUwPc44cSR7JEdtwMF2rCiBapAEc6CwymVsohcQhi4OJn9ZLdt3Q8QF43kS8rTj5dxawtNJMlVldTkRc6bgE7vX/Bdrz6yUxRovCTh+pC+YE3ICEJMlxN9KPoCzu5icAbJbp6Tu7qjf0/QdZsQWiur7BPcprV/tRcJ3ZDDVC3uKrnaZbA6CVtKf+jlluFJKhH1S67BzgCacjGFNDdk9qNzSLpaYk5l8IUDtX1/QqNg7xdFhsizplpWelxtrVSfPNuYNHxn8PQGWsb1u7jaYy3i5O1pIDzEO4uwO76cY5+ll3VzeIb5aV2hEaXfenqOvkwbtkIylcktAiVVu1DjGIh7We1MMC2odPMrMMJ70Py5REz2/01TOu25iL55fFaTkwJ7k5XTc/EEcjBUMHWwGIH/eIIbtT9qIeZdZZsClBpy4pCJ9qFMTiSnpLJ/G+/3aXrjVl7tbLv4xRL8jnAOPYFcQQDzqkbLZYLj7Isrk5DAZwRuyBQonAvhk8CaMv6kqPnEaqthMk3wdqCgL4gsYk1YFrF3qHWzQqFuUzyBbqp6SNtFxqhGfs5ghKaeIL1qF82tqGzRo45DH9BjOusZk26a2sOJf8Qua7pA6AliV0ucNk0Wm6tNP/xGP0T2nH+wdLPtLwzV4pvl7wcX4Kd475PrW1sTRHFronlT3MaFo2+B0P5kNydn8zVegrcWoJcAOM0G5h+QT68ggGsAk8iiJ8VU5K9FiTWgFIv545DSFNp6TIdwYTheys2giNui1DBMEIXBBouDBoJDKpSLLFjvsyIOCd1qNmKXVjwj4aVf4sgBvAh5goqKmFtDmIG5P841GUfgtgFhA00PoIg6n3EQcveoSKKAwT8InGVMq1q07lJHc/DiWns8iPzbfL1zq98J3vFXzGQcj5rvDWbX25maa3vlEhvO3eaJ8D9dq+wKFplvEx73PzWckfAXbvf/zxj2yFiWrDPyezpnWuvngu6jH/xpSlCiW8dpdXxaWMErKHDe1wO4YyM3T2jJgXmq1g1uPo6L0AYlpxt4E3lB+yRF9qsdxVWi1hKzT24KUz8oF/aaNrC0ge6kaNWPagP27eau5aAnFj+8WC1fLVc/Ii2S0tSo/WKrwhIj1GVXbRQ5yV1zLX2M6/aC4UcT3jcEfTyVwjFtS2KikfpIgxbiypO5u0JdpNaezJ5wD1TWcHH+OBRM0Hlh5cQZab3OOhBGlgR3e4FPjDhc+Xuk4vvaCGNmQJUk/ZBRV/ijnRVQXUqIqP2FXCgepbaCrczvyebzraeCcN86/6EirYyl0qlmKi1g/X0jPZjspLq1JkvwWpmblDea66NB4/srnnY1BVdRALEQLJe8kGtF/DeiXPcp8f/9ueM69jyLVqdlPWA3v/7WobKDLLnHRI4yLDC9GgePh5sc4zncMIm4wb2F1P2SBAz9i7G93KAVEvZSLmWVKfQV412zjL2sMnj1i87ycZ4lnXh4Pbc8OXdb19cwfTLaW3qqf9THQCbI1XsRz/BmtpRJKQQKgf73mgCiz5ToaGZmeLuxAR6o+Ebj7NMrhzktl6gLnzu1N1IAIcXBCFyQanl8/CpLJq94Jl4/VuEwqPIDrRMRWMbpl60baQu/QfdwzrvfzhEveAtJVpe8j/CZI1WmNjeRSDTt0eID2fVlbDMRB0BEANkRFWd5V5iVJoSplSiZ5mkGECqXjGzUnk8sqrxq8bUGFwj9JIUKZOHbwz1oP3ymeepK2fOKuLStprh1YcoGOoPud0TzR7/hIWUxkU6/EjwezLZwNmIRtrEbx4pwieD22iP7Y3dRdKK08RBZMsRxstA/rkPHaptzQYrc53sKaCTesovRJpfOGiXE0RzMvXvyJFJj6izEYExJ47shAH0PfpToEO1eLvtcNIPrrn6sic+c3vreIX4IHwsN/lcQk5RnW4l5qB2igVYVpMWbaZGizLlsp3zAEVTPTzmoROtIwdLLOCGeC3B2TIGCbUvX9aYBZcZV8oqkVObHgr5rde9jHaOg3/Q9dUf+ygl5ShTCiex6PePbfNPaBCxUY9KmQ1vkaPB1MuGpHtry0t2TT0y1dQTr+Gu+3kxbl7oKBmVOoaT6/6dqwBDrDbWZW3TEMQev0cN/bqiK8fIGWiFLFyfWjc1EEiQIMjqJ3EXqiq7gEidBOAg0EqVLbiwa+1fwxgmDzzVjZN2dUq42POoBlQ+lDNZGf111QMdY3y5p6bxqk39kLAiYiQiUqETILCS5U3lC0iyuYmVuqfElYcsO5w6pFq0FtpigrUK+aLNM1zrJZ7ggL29bFX3uelVwjuI4pp/W9lLwYaLvmItWJEHAU96me3eHUa6lrnz2NhPzwOqA/aro0+Y07Rd1HARmVEX+Y8oK2SWGoLeClZFmp+fXqa3o6/BkRt894/V+0OpTdO2aw/6K5Vh5bfMHqRdI9Vzn1VqWqx0/VszFrTGv4TsXx3COb5EvdTmexiJEVfGZod2wW+LLnhRC7kNDz8a79meJ1OK0vXmtR7FtETTGOtdSzXSqDghgW/sCHlgOwz1vwNMxLGc+1o9vy9e0/ySC8VDzI6R55VoW791vdKG8k9iiDMt+8F9vYtacyvbHmLdneLavj5ePMEt6b+FWjH6j+XxOH9uZsSx/25MV/1cOjl4L2eqKxtqJsaC+wlU1O0raxDx/zC4wDImONBTlpMTX0Y5mKzJsQms3R0oGYMzqTiiJJxm8fNKpm4uDZ5Ozrq5YqlB69RA+Wvvd6+WeaCQvym5cQ0rPvDnWBI/RgFlgYtx8eE4UFL8bT1JOvg+yk1m5/3El63TA9gacLvajkWtqzzIp4LaVghEScvSnLADVh2Ka4GtODpROBiqcTwEVmOIsIq8H9BKEgUc8laHwFJBc5A45Gi+5SAp+lR+M2gEiUPFo7j1o54gLKp+ILGuEP/oBj6QURGuwlguj459+CWVIR0hEvUa4fnGjMqZ91h+9zRXi+jbPFN7I8FjigmmPXwsdT0Qa5iuZ0fC7tuiIlMiA6LuxeKxZSbygmOIhxLIx4KYMSlyOaD/CQAW5/aIbBLcrzgdf57MYDGIJIBBPT2IeQcDJAraom9eUUnagx2f7s3AulXSMCbQ9ojK8NKFBbbkY45uKIxTmIRKDuJTfnCZd/+5h16H8iGQ2NGWTlqVnSlgc2Dmng6zybtKVKk2LjGMGFEP3vFwJhlO4EHZmslHlHKHT83dbQ0BauIyLuJHdiyR1ZFYibplbnkMRJOvHJefzwWd3AUT5Bl3MH2bQItVsxfjIrwbJWEZhbhsQNffnV9WrqVmBS2+q1+WpZ8mD8VfavbZG0QYdyitVRp0q2zN2YM/RcPxRcR/UwVOCBIOw+eXQah6Ppu1m+na/6a3O+XeAZ/6PirA5x1U2uen+i78JQmk6T9h/M6cJMG2Aufn//a/OmkuSdI6H+730A+B1jp/c4L1gnbdH902mifQfV0AodCDOkDeZVUextjZG+Mw5Oe85WbJXmn4HBSzt3LUlb8JFfBQSimx8o5ptbv5azyd119vMsRVjwcZ8663tOqnf5dXNirrqIC5025xpP16tnaUlBx8EugT6L+9RY2dTNoce1u9yJ7kp4BTP+SkQEQjtI8LUl9ZjVGshVm5I+5jbKFerZtlgpNw4ZITjXvTjTKSo5IsJg3qsIj/LdVSJcfssUFIFBJyNV7yPcbK48INj7YvfsnQcE8wQP+OcGzMFVu6Iiu6lLQJrTtok6urD4HnEn4Ul8rY3NHD603YqscD8mhFAeQjCub5wwygHI5C1vwVgsiSNQS0rvCG0aTvo8KHuiu00EnONRs7bpa59yejZ165/bbdNpdgXEOV51uPkDQ/pALOXBSeuPFjmTIm+S+MxCezvT4siavibPn8iOy+JKBOOSW3XDTaaz8MnII+EfHkP6kd3YB8dwZuh974XeGrRNh7ZRWbeIa/LJBXXvSKP4ZsCFdQQpzyQMV61Nl34rMEi2axSQ+xsDNUtrX3/kzMNmuUsLyMnKYam9cNk5nah1Wt1Fi0bhgg+EPTCdilYtnNDLHzLw0XuZBCq42PGoJHWtVh/Lcx16OhDM57TuB/MVnE3iXEj/3tb4SPooo3BIs3T6nbV0kGOwAuO9YWxGFstbevWrJhAqN4E2HAZ4yqbw+afIPV628M70XIj9FQxsK91mYVSMIjruUcXs5Rf6OHDPwR6G+7ChN7xzBszTD42sLIBTlhNkcUhv1InBK7JWw5J4CpCPH5bzbmRuOJDXcaQgv40QWsrMMNaT8mBuNXyFQUsjDCED6Yuaa0FRoVDCxR6Bo4FKynyHaYrkkpGXzTJxLywUoQNicdpdTcckSx6tjj/wetStmI2ams+DKIFEEyTg2PvFDpVPJMgc7ZD3lLD5hqFo7uaCDBcBGH812iyT6ssFOSPQ4rM4tzLWWfjuWl20MUbb3dlcUV/DScj3aW/nGleuYClVgAAAAAAAAAAAAAAAAAAAmQfZwDtUV0LfH8flH4SLbHuczhaAuZKhHImyq5lGmm2r6Hh2DgTasoNCLJvDfctl1fKJVoRrPO8JvdKu/ZA8q3Mg3Nj6ZVAQyq9MF3ZaRuTrIgSjgWhCXAow1g5PoawpRJReIRn0f2PyK5f/Un//8pP4M+3upCpHf1HqMR9Gb6QztC+TZTwAAA"></div>
+<div class="dock" id="dock" style="display:none"><div class="in">
+  <div class="tot" id="tot">0 <small>/ 70</small></div>
+  <div class="miss" id="grd"></div>
+  <button class="prev" id="prevBtn"></button>
+  <button class="main" id="finishBtn">Finish</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+(function () {
+  var LETTERS = ['ب','ل','خ','و','ن','ر','ذ','ه','ا','ح','ي','ص','ف','ظ','ق','ش','غ','ج','م','ط','ث','س','ت','ك','د','ض','ع','ز'];
+  var ITEMS = ['Letter Positions Pg.4','Letter Positions Pg.5','Fathaa','Kasra','Dammah','Sukoon','Practice Pg.11',
+    'Fathatayn','Kasratayn','Dammatayn','Letters of Madd','Alif Madd','Small Alif Ruling','Yaa Madd','Waow Madd',
+    'Leen Letters','Yaa Leen','Waow Leen','Shaddah','Practice Level 1','Practice Level 2','Practice Level 3'];
+  var SURAHS = ["Al-Fatihah","Al-Baqarah","Aal-'Imran","An-Nisa","Al-Ma'idah","Al-An'am","Al-A'raf","Al-Anfal","At-Tawbah","Yunus","Hud","Yusuf","Ar-Ra'd","Ibrahim","Al-Hijr","An-Nahl","Al-Isra","Al-Kahf","Maryam","Ta-Ha","Al-Anbiya","Al-Hajj","Al-Mu'minun","An-Nur","Al-Furqan","Ash-Shu'ara","An-Naml","Al-Qasas","Al-'Ankabut","Ar-Rum","Luqman","As-Sajdah","Al-Ahzab","Saba","Fatir","Ya-Sin","As-Saffat","Sad","Az-Zumar","Ghafir","Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiyah","Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf","Adh-Dhariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi'ah","Al-Hadid","Al-Mujadilah","Al-Hashr","Al-Mumtahanah","As-Saff","Al-Jumu'ah","Al-Munafiqun","At-Taghabun","At-Talaq","At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Ma'arij","Nuh","Al-Jinn","Al-Muzzammil","Al-Muddaththir","Al-Qiyamah","Al-Insan","Al-Mursalat","An-Naba","An-Nazi'at","'Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams","Al-Layl","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-'Asr","Al-Humazah","Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr","Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"];
+  var SURAHS_AR = ['الفاتحة','البقرة','آل عمران','النساء','المائدة','الأنعام','الأعراف','الأنفال','التوبة','يونس','هود','يوسف','الرعد','إبراهيم','الحجر','النحل','الإسراء','الكهف','مريم','طه','الأنبياء','الحج','المؤمنون','النور','الفرقان','الشعراء','النمل','القصص','العنكبوت','الروم','لقمان','السجدة','الأحزاب','سبأ','فاطر','يس','الصافات','ص','الزمر','غافر','فصلت','الشورى','الزخرف','الدخان','الجاثية','الأحقاف','محمد','الفتح','الحجرات','ق','الذاريات','الطور','النجم','القمر','الرحمن','الواقعة','الحديد','المجادلة','الحشر','الممتحنة','الصف','الجمعة','المنافقون','التغابن','الطلاق','التحريم','الملك','القلم','الحاقة','المعارج','نوح','الجن','المزمل','المدثر','القيامة','الإنسان','المرسلات','النبأ','النازعات','عبس','التكوير','الانفطار','المطففين','الانشقاق','البروج','الطارق','الأعلى','الغاشية','الفجر','البلد','الشمس','الليل','الضحى','الشرح','التين','العلق','القدر','البينة','الزلزلة','العاديات','القارعة','التكاثر','العصر','الهمزة','الفيل','قريش','الماعون','الكوثر','الكافرون','النصر','المسد','الإخلاص','الفلق','الناس'];
+  /* Spellings teachers use (from the Qur'an School and Saturday School registers) and other names for
+     surahs, so "mudathir", "feel", "tabarak" or "inshirah" still find the right surah. */
+  var SURAH_ALIASES = {"Al-Fatihah":"fatiha | alfatiha | faatiha | faatihah","Al-Anbiya":"anbiyaa","Hud":"hood | hoodh | houd","Nuh":"nouh | nooh","Al-Mu'minun":"muminum | muminoon | muminun","An-Nur":"nour | noor","Al-Qasas":"qashah","As-Sajdah":"sajda","Az-Zumar":"zumur | zumba","Ash-Shura":"shura","Al-Ahqaf":"ahqaaf","Muhammad":"muhammed","Al-Hujurat":"hujuraat","Al-Furqan":"furqaan","Al-Waqi'ah":"waqia | waqiah | waaqiah","Al-Hadid":"hadeed","Al-Mujadilah":"mujaadilah","Al-Hashr":"hachr","Al-Mumtahanah":"mumtahinah","Al-Jumu'ah":"jumuaah | jumuah | jumah | jumua","Al-Munafiqun":"munafiquun | munaafiquun | munafiqoon","At-Taghabun":"taghaabun","At-Talaq":"talaaq","At-Tahrim":"tahreem | tarim","Al-Ma'arij":"maaarij","Al-Jinn":"jin","Al-Muzzammil":"muzamil | mozamel | muzzamill","Al-Muddaththir":"mudathir | muddathir | madeter | modeter","Al-Insan":"insaan | dahr | ad dahr","An-Naba":"nabaa | amma | naba","An-Nazi'at":"naaziat | naziaat | nazat | nazyaat | naaziaat | naazaiat | nazaiaat | nazzat | nazazt | nazet | naziat | naziyat","At-Takwir":"takweer | takvir","Al-Infitar":"infitaar | infitar","Al-Mutaffifin":"mutafifeen | mutafifin | muttaffifeen | mutaffifeen | motaffen","Al-Inshiqaq":"inshiqaaq | inshaqaq | inshqaq | inshiqqaaq | inshagaq","Al-Buruj":"burooj | burioj | burroughs","At-Tariq":"taariq | taareeq","Al-A'la":"alaa | aala | aalaa","Al-Ghashiyah":"ghashiah | ghasiyah | ghashiya | ghashiyyah | ghashyia | ghaashyia | ghasyia | qhasyiah","Al-Fajr":"fajer","Al-Balad":"ballad","Ash-Shams":"shames | shmmes","Al-Layl":"layel | layla | lail | lael","Ash-Sharh":"sharah | shareh | inshirah | nashrah | alam nashrah","At-Tin":"teen | tiin","Al-Qadr":"qader | qadar","Al-Bayyinah":"bayinah | bayyenah | bayinnah | bayennah | bayyina","Az-Zalzalah":"zelzelah | zlzelah | zelzelzh | zalzah | zalzalaah | zilzal | zalzala | zilzaal","Al-'Adiyat":"adiyaat | aadiyat | aadiyaat | adiyyat | adyat | addiyat | aaadiyaat | adeat | adet","Al-Qari'ah":"qaariah | qaryia | qaryah | qarah | qariaah | qariah","At-Takathur":"tekathoor | takawthur | takaathur | takathur | takasur","Al-'Asr":"aser | asar","Al-Humazah":"humaza | humuzah","Al-Fil":"feel | fill | fail","Quraysh":"qurays | qurayesh | quriash | quraish | qureish","Al-Ma'un":"maoon | maaun | maoun | maauun | maun","Al-Kawthar":"kawthur | kausar | kauthar | kawsar | kosar","Al-Kafirun":"kafiroon | kaafirun | kaafiroon | kaafiron | kafirron | kaferoon","An-Nasr":"nasser | nasar","Al-Masad":"masada | lahab | tabbat","Al-Ikhlas":"iklaas | ikhlaas | iklas","An-Nas":"naas","Sad":"suaad | saad","Al-Haqqah":"haaqa | haaqqah | haqqa","Al-Baqarah":"baqara | baqra | baqarah","Aal-'Imran":"imran | imraan | ali imran | aali imran | al imran","An-Nisa":"nisaa | nisa","Al-Ma'idah":"maidah | maida | maaidah","Al-An'am":"anaam","Al-A'raf":"araaf | aaraf","Al-Anfal":"anfaal","At-Tawbah":"tauba | taubah | tawba","Yunus":"younus | yoonus","Yusuf":"yousuf | yoosuf | yousef","Ar-Ra'd":"raad","Ibrahim":"ebrahim | ibraheem","Al-Isra":"israa | israil | bani israil | bani israeel","Al-Kahf":"kahaf | kahf","Maryam":"mariam | maryum","Ta-Ha":"taha | taahaa","Al-Hajj":"haj","Ash-Shu'ara":"shuara | shuaraa","Al-'Ankabut":"ankaboot","Ar-Rum":"room","Luqman":"lukman | luqmaan","Al-Ahzab":"ahzaab","Saba":"sabaa","Fatir":"faatir","Ya-Sin":"yaseen | yasin | yaaseen","As-Saffat":"saaffaat | saffaat","Ghafir":"mumin | ghaafir","Fussilat":"fussilaat | ha mim sajdah","Az-Zukhruf":"zukruf | zukhruf","Ad-Dukhan":"dukhaan","Al-Jathiyah":"jaathiyah | jathiya","Al-Fath":"fatah","Qaf":"qaaf","Adh-Dhariyat":"dhariyaat | zariyat | thariyat | zaariyaat","At-Tur":"toor","An-Najm":"najam","Ar-Rahman":"rehman | rahmaan","As-Saff":"saf","Al-Mulk":"tabarak | tabaarak","Al-Qalam":"nun | noon","Al-Qiyamah":"qiyamat | qiyaamah","Al-Mursalat":"mursalaat","'Abasa":"abasa | abas","Ad-Duha":"dhuha | zuha | doha","Al-'Alaq":"iqra | alaq","Al-Falaq":"falak"};
+  function enKey(s) { return String(s || '').toLowerCase().replace(/[^a-z]/g, ''); }
+  function enStrip(k) { return k.replace(/^(aal|adh|ash|al|an|ar|as|at|ad|az|el|ul)(?=[a-z]{3})/, ''); }
+  var ALIAS_KEYS = [];          // [rawKey, strippedKey, surah]
+  SURAHS.forEach(function (n) { var k = enKey(n); ALIAS_KEYS.push([k, enStrip(k), n]); });
+  Object.keys(SURAH_ALIASES).forEach(function (n) { SURAH_ALIASES[n].split(' | ').forEach(function (a) {
+    var k = enKey(a); ALIAS_KEYS.push([k, enStrip(k), n]); }); });
+  function lev(a, b) {
+    var d = [], i, j; for (j = 0; j <= b.length; j++) d[j] = j;
+    for (i = 1; i <= a.length; i++) { var p = d[0]; d[0] = i;
+      for (j = 1; j <= b.length; j++) { var t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } }
+    return d[b.length];
+  }
+  /* English search: names and known spellings that start with what was typed; if none, the closest names. */
+  function surahHits(typed) {
+    var r = enKey(typed), s = enStrip(r); if (!r) return [];
+    var out = [];
+    ALIAS_KEYS.forEach(function (x) {
+      if ((x[0].indexOf(r) === 0 || x[1].indexOf(s) === 0 || x[1].indexOf(r) === 0) && out.indexOf(x[2]) < 0) out.push(x[2]);
+    });
+    if (out.length || s.length < 3) return out;
+    var lim = s.length <= 5 ? 1 : 2, best = [];
+    ALIAS_KEYS.forEach(function (x) { var dd = Math.min(lev(s, x[1]), lev(r, x[0])); if (dd <= lim) best.push([dd, x[2]]); });
+    best.sort(function (a, b) { return a[0] - b[0]; });
+    best.forEach(function (x) { if (out.indexOf(x[1]) < 0) out.push(x[1]); });
+    return out;
+  }
+  /* The surah a typed word stands for, only when it is a whole known spelling (used to correct on leaving the box). */
+  function surahExact(typed) {
+    if (isArabic(typed)) { var a = arKey(typed); for (var j = 0; a && j < SURAHS_AR.length; j++) if (arKey(SURAHS_AR[j]) === a) return SURAHS[j]; return ''; }
+    var r = enKey(typed), s = enStrip(r); if (!r) return '';
+    for (var i = 0; i < ALIAS_KEYS.length; i++) if (ALIAS_KEYS[i][0] === r || ALIAS_KEYS[i][1] === s) return ALIAS_KEYS[i][2];
+    return '';
+  }
+  function arKey(s) { return arNorm(s).replace(/^\u0627\u0644/, ''); }
+  function arNorm(s) {
+    return String(s || '').replace(/[\u064B-\u065F\u0670\u0640]/g, '').replace(/[\u0622\u0623\u0625\u0671]/g, '\u0627')
+      .replace(/\u0649/g, '\u064A').replace(/\u0629/g, '\u0647').replace(/[^\u0621-\u064A]/g, '')
+      .replace(/^\u0633\u0648\u0631\u0647/, '');
+  }
+  function isArabic(s) { return /[\u0600-\u06FF]/.test(String(s || '')); }
+  function surahAr(name) {
+    if (isArabic(name)) {                                   // typed in Arabic
+      var a = arKey(name);
+      for (var j = 0; a && j < SURAHS_AR.length; j++) if (arKey(SURAHS_AR[j]) === a) return '\u0633\u0648\u0631\u0629 ' + SURAHS_AR[j];
+      return '';
+    }
+    var ex = surahExact(name);
+    if (ex) return '\u0633\u0648\u0631\u0629 ' + SURAHS_AR[SURAHS.indexOf(ex)];
+    var k = String(name || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!k) return '';
+    for (var i = 0; i < SURAHS.length; i++) {
+      var e = SURAHS[i].toLowerCase().replace(/[^a-z]/g, '');
+      if (e === k || e.replace(/^(al|an|ar|as|at|ad|adh|ash|az)/, '') === k.replace(/^(al|an|ar|as|at|ad|adh|ash|az)/, '')) return 'سورة ' + SURAHS_AR[i];
+    }
+    return '';
+  }
+  var ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c6c70" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+  var BOOK_PAGES = 35;                                  // pages in the Read Book (drop-down range)
+  var QUICK_Q = ['Forgot / stuck','Skipped words','Wrong harakah','Makhraj','Madd','Ghunnah','Qalqalah','Stopping','Needed prompt'];
+  var QUICK_R = ['Confused similar letters','Wrong harakah','Madd too short','Sukoon','Shaddah','Needed prompt'];
+
+  /* Which link was opened: ?school=quran|saturday, &view=office. No school = every school (the original link). */
+  var MODE = { school: null, office: false };
+  var SCHOOLS = {
+    quran: { name: 'Quran School', show: 'Qur\u2019an School', tint: '#0c7c59', soft: '#e3f3ec' },
+    saturday: { name: 'Saturday School', show: 'Saturday School', tint: '#5856d6', soft: '#ecebfb' }
+  };
+  function applyMode(p) {
+    p = p || {};
+    var k = String(p.school || '').toLowerCase();
+    var sc = SCHOOLS[k] || (/^q/.test(k) ? SCHOOLS.quran : /^s/.test(k) ? SCHOOLS.saturday : null);
+    MODE.office = /^(office|admin)/i.test(String(p.view || ''));
+    if (sc) {
+      MODE.school = sc.name; MODE.show = sc.show;
+      document.documentElement.style.setProperty('--tint', sc.tint);
+      document.documentElement.style.setProperty('--tint-soft', sc.soft);
+    }
+    document.body.classList.toggle('office', MODE.office);
+    document.body.classList.toggle('school', !!MODE.school);
+    var sat = MODE.school === 'Saturday School';
+    document.body.classList.toggle('has-logo', sat);
+    $('brand').hidden = !sat;
+    document.title = (MODE.school ? MODE.show + ' ' : '') + (MODE.school === 'Quran School' ? '' : 'Qur’an ') + 'exams' + (MODE.office ? ' office' : '');
+  }
+  // shown as just "Class 1B": the year groups stay in the data (and the sheet), not on screen
+  // Qur'an School classes are named after their teacher: "Ustaadh Shakiel", "Ustaadhah Feiruz"
+  function clsName(c, school, side) {
+    c = String(c || ''); school = school === undefined ? S.school : school; side = side === undefined ? S.side : side;
+    if (/qur'?an school/i.test(school || '') && !/^ustaa?dh/i.test(c)) {
+      if (/^brother/i.test(side || '')) return 'Ustaadh ' + c;
+      if (/^sister/i.test(side || '')) return 'Ustaadhah ' + c;
+    }
+    var n = /^\s*(\d|yl)/i.test(c) && !/^class\b/i.test(c) ? 'Class ' + c : c;
+    return n.replace(/\s+years?\s+[\d+\-\u2013\s]*$/i, '').trim() || n;
+  }
+  function showName(n) { return n === 'Quran School' ? 'Qur\u2019an School' : n; }
+  var S = { home: null, school: null, side: null, cls: null, list: null, tab: 'mark',
+            pupil: null, year: '', recs: {}, exam: 'Q70' };
+  var $ = function (id) { return document.getElementById(id); };
+  var view = $('view');
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k);
+    if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+  function toast(msg, ms) { var t = $('toast'); t.textContent = msg; t.style.display = 'block';
+    clearTimeout(toast.t); toast.t = setTimeout(function () { t.style.display = 'none'; }, ms || 2600); }
+
+  /* Inside Google's frame use google.script.run; on the fast host, post to the same script directly. */
+  var EXEC = 'https://script.google.com/macros/s/AKfycbyHRLRhGernnzupfMUu-4qzHyN7xmK2AjhOdabiODL2-_MrOLl5o2yvF6Q5F14hcUHZ/exec';
+  var IN_GOOGLE = !!(window.google && google.script && google.script.run);
+  function call(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (IN_GOOGLE) return new Promise(function (res, rej) {
+      var r = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+      r[fn].apply(r, args);
+    });
+    // text/plain keeps it a "simple" request: no CORS preflight, which Apps Script cannot answer
+    return fetch(EXEC, { method: 'POST', body: JSON.stringify({ action: 'rpc', fn: fn, args: args }) })
+      .then(function (r) { return r.json(); })
+      .then(function (out) { if (out && out.rpcError) throw new Error(out.rpcError); return out; });
+  }
+
+  S.nav = 0; S.recCache = {}; S.bundleReady = {};
+  function rkey(school, side, cls, pupil) { return [school, side, cls, pupil].join('|').toLowerCase(); }
+  /* After a save, keep the held copies current so lists and reopening need no server trip. */
+  /* ---- this iPad's own record of each child's status ----
+     S.local[key] = {round, status, total, max, book, updated, confirmed}. "updated" is when the change was
+     made; an older reply can never overwrite a newer change. Until the server has confirmed that change
+     (confirmed = when its reply came back), every list from the server is laid over with it, so a list
+     fetched a moment before a save lands can never show a finished child as "in progress". */
+  var LOCAL_KEY = 'oe:local:v1';
+  S.local = (function () { try { return JSON.parse(store(LOCAL_KEY) || '{}') || {}; } catch (e) { return {}; } })();
+  function keepLocal() { clearTimeout(keepLocal.t); keepLocal.t = setTimeout(function () { try { store(LOCAL_KEY, JSON.stringify(S.local)); } catch (e) {} }, 200); }
+  function noteLocal(copy, status, total, max, confirmed) {
+    var k = rkey(copy.school, copy.side, copy.cls, copy.pupil), e = S.local[k], u = copy.updated || 0;
+    if (e && u < (e.updated || 0)) return false;                      // older news: ignore
+    var same = e && u === e.updated;
+    S.local[k] = { round: S.home && S.home.round, status: status, total: total, max: max, book: copy.exam, updated: u,
+                   confirmed: confirmed ? Date.now() : (same ? e.confirmed : null) };
+    keepLocal();
+    return true;
+  }
+  /* Lay this iPad's newer statuses over a list from the server. sentAt = when that list was asked for:
+     a change confirmed after that moment is not in the list yet. */
+  function overlay(p, school, side, cls, sentAt) {
+    var e = S.local[rkey(school, side, cls, p.pupil)];
+    if (!e || (S.home && e.round && e.round !== S.home.round)) return false;
+    if (e.confirmed && sentAt >= e.confirmed) return false;           // the server already had it
+    var was = p.status;
+    p.status = e.status; p.book = e.book;
+    if (e.total !== undefined && e.total !== '') { p.total = e.total; p.max = e.max; }
+    return was !== p.status ? was : false;
+  }
+  function overlayHome(h, sentAt) {
+    if (!h || !h.pupils) return h;
+    h.pupils.forEach(function (p) {
+      var was = overlay(p, p.school, p.side, p.cls, sentAt);
+      if (was === false) return;
+      (h.schools || []).forEach(function (s) { if (s.name !== p.school) return;
+        s.sides.forEach(function (sd) { if (sd.name !== p.side) return;
+          sd.classes.forEach(function (c) { if (c.name !== p.cls) return;
+            if (was === 'Done') c.done--; else if (was === 'In progress') c.started--;
+            if (p.status === 'Done') c.done++; else if (p.status === 'In progress') c.started++;
+          }); }); });
+    });
+    return h;
+  }
+  function noteSaved(copy, res, fromServer) {
+    var k = rkey(copy.school, copy.side, copy.cls, copy.pupil);
+    if (res && res.status) copy.status = res.status;     // the server may say "In progress" (marks missing)
+    var sc = score(copy);
+    if (!noteLocal(copy, copy.status, res && res.total !== undefined ? res.total : sc.total, res && res.max ? res.max : sc.max, !!fromServer)) return;
+    var cur = (S.recCache[k] = S.recCache[k] || {})[copy.exam];
+    if (!cur || (copy.updated || 0) >= (cur.updated || 0)) S.recCache[k][copy.exam] = copy;
+    if (S.home) overlayHome(S.home, -1);
+    keepHome();
+  }
+  /* Keep the device's home copy in step, so a reload never shows a marked child as not started. */
+  function keepHome() {
+    clearTimeout(keepHome.t);
+    keepHome.t = setTimeout(function () { try { if (S.home) store(HOME_KEY, JSON.stringify(S.home)); } catch (e) {} }, 300);
+  }
+  function setHeader(where, back) {
+    S.nav++;
+    $('backBtn').innerHTML = back ? '&larr;&nbsp; ' + where : where;
+    $('backBtn').onclick = back || null;
+    $('backBtn').style.cursor = back ? 'pointer' : 'default';
+    $('dock').style.display = 'none';
+    document.body.classList.remove('marking');
+    setSaveState('');
+    showExaminer();
+  }
+  function exmKey() { return S.cls ? 'oe:exm:' + (S.school + '|' + S.cls).toLowerCase() : ''; }
+  function examiner() {
+    if (S.cls) {
+      var own = store(exmKey());
+      if (own) return own;
+      if (/qur'?an school/i.test(S.school || '')) return S.cls;   // class = its teacher's name
+    }
+    return S.cls ? '' : (store('oe:examiner') || '');
+  }
+  function showExaminer() {
+    var b = $('exmBtn'); if (!b) return;                // examiner is no longer shown or asked for
+    var e = examiner();
+    b.style.display = S.cls ? '' : 'none';            // the examiner belongs to a class
+    b.innerHTML = e ? 'Examiner: <b>' + esc(e) + '</b>' : 'Add examiner name';
+    b.className = 'exm' + (e ? '' : ' unset');
+  }
+  function askExaminer(then) {
+    modal('<h3>Examiner</h3><p class="hint" style="margin:0">Your name goes on every mark you give on this iPad.</p>' +
+      '<input id="exmIn" placeholder="Your name" autocomplete="name" value="' + esc(examiner()) + '">' +
+      '<div class="acts"><button id="mc">Cancel</button><button class="pri" id="mo">Save</button></div>');
+    $('exmIn').focus();
+    $('mc').onclick = closeModal;
+    $('mo').onclick = function () {
+      var v = $('exmIn').value.replace(/\s+/g, ' ').trim(); if (!v) return;
+      if (S.cls) store(exmKey(), v); else store('oe:examiner', v); closeModal(); showExaminer();
+      if (S.pupil && S.recs[S.exam] && $('dock').style.display !== 'none') { rec().examiner = v; changed(); }
+      if (then) then();
+    };
+  }
+
+  function loading(msg) { view.innerHTML = '<p class="empty">' + esc(msg || 'Loading...') + '</p>'; }
+  function fail(e) { view.innerHTML = '<p class="empty">Could not load: ' + esc(e && e.message || e) +
+    '</p><button class="smallbtn" onclick="location.reload()">Try again</button>'; }
+
+  /* ---------------- home ---------------- */
+  /* Start from the copy kept on this device, so the app opens at once; the server's answer then
+     replaces it quietly (and only redraws if something changed and the person has not moved on). */
+  var HOME_KEY = 'oe:home:v1';
+  function route() { if (S.school && S.side) return showClasses(); if (S.school) return showSides(); showHome(); }
+  function loadHome() {
+    setHeader('', null);
+    var kept = null;
+    try { kept = JSON.parse(store(HOME_KEY) || 'null'); } catch (e) {}
+    if (kept && kept.schools) { S.home = overlayHome(kept, -1); route(); } else loading();
+    var t = S.nav;
+    var sentAt = Date.now();
+    if (S.home) overlayHome(S.home, -1);
+    return call('getHome').then(function (h) {
+      overlayHome(h, sentAt);
+      var changed = JSON.stringify(h) !== JSON.stringify(S.home);
+      S.home = h;
+      try { store(HOME_KEY, JSON.stringify(h)); } catch (e) {}
+      if (!kept || (changed && S.nav === t)) route();
+      resendKept();
+    }).catch(function (e) { if (!kept) fail(e); });
+  }
+  function resendKept() {
+    if (resendKept.done) return; resendKept.done = true;
+    var pre = ('oe:rec:' + S.home.round + '|').toLowerCase();
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf(pre) !== 0) return;
+        var l = null; try { l = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+        if (!l || !l.dirty || !l.rec || !l.rec.pupil) return;
+        var sk = saveKey(l.rec);
+        if (S.pending[sk] || S.inflight[sk]) return;
+        S.pending[sk] = l.rec; sendSave(sk);
+      });
+    } catch (e) {}
+  }
+
+  function tabs() {
+    if (MODE.school) {
+      var sat = MODE.school === 'Saturday School';
+      return '<h1 class="page">' + esc(MODE.show) + (sat ? ' Qur’an exams' : '') + (MODE.office ? ' office' : '') + '</h1><div class="meta">' +
+        (MODE.office ? 'Exam progress' : (sat ? 'Exams' : 'Qur’an exams')) + ' &middot; ' + esc(S.home.round) + '</div>';
+    }
+    return '<h1 class="page">Qur’an exams</h1><div class="meta">' + esc(S.home.round) + '</div>' +
+      '<div class="tabs"><button data-tab="mark" class="' + (S.tab === 'mark' ? 'on' : '') +
+      '">Mark</button><button data-tab="prog" class="' + (S.tab === 'prog' ? 'on' : '') + '">Office progress</button></div>';
+  }
+
+  /* ---------------- search: any child, any class ---------------- */
+  function searchBox() {
+    return '<div class="search">' + ICON + '<input id="q" placeholder="Search any child by name" autocomplete="off" ' +
+      'autocorrect="off" spellcheck="false" value="' + esc(S.q || '') + '"><button class="clr" id="qc" aria-label="Clear" style="display:' +
+      (S.q ? '' : 'none') + '">&times;</button></div><div id="qres"></div>';
+  }
+  function wireSearch(after) {
+    var inp = $('q'); if (!inp) return;
+    var run = function () {
+      S.q = inp.value; $('qc').style.display = S.q ? '' : 'none';
+      var box = $('qres'), body = $('below');
+      var t = S.q.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!t) { box.innerHTML = ''; if (body) body.style.display = ''; return; }
+      if (body) body.style.display = 'none';
+      var words = t.split(' ');
+      var hits = (S.home.pupils || []).filter(function (p) {
+        if (MODE.school && p.school !== MODE.school) return false;
+        // Each typed word must start one of the child's names ("ham" finds Hamza, not Mohamed).
+        var parts = p.pupil.toLowerCase().split(/[\s'-]+/);
+        return words.every(function (w) { return parts.some(function (x) { return x.indexOf(w) === 0; }); });
+      });
+      var all = hits.length; hits = hits.slice(0, 40);
+      box.innerHTML = '<p class="hint">' + (all ? all + (all === 1 ? ' child' : ' children') + ' in all classes' +
+        (all > 40 ? ' · type more of the name to narrow it down' : '') :
+        'No child found with that name') + '</p><div class="rows">' + hits.map(function (p, i) {
+          return '<button class="row" data-hit="' + i + '"><span class="nm">' + mark(p.pupil, words) + '</span>' +
+            '<span class="ctx">' + (MODE.school ? '' : esc(showName(p.school)) + ' &middot; ') + esc(clsName(p.cls, p.school, p.side)) + ' &middot; ' + esc(p.side) + '</span>' +
+            statusText(p) + '</button>';
+        }).join('') + '</div>';
+      box.querySelectorAll('[data-hit]').forEach(function (b) {
+        b.onclick = function () { var p = hits[+b.getAttribute('data-hit')];
+          S.school = p.school; S.side = p.side; S.cls = p.cls; S.q = ''; openPupil(p.pupil, p.year, p.book); };
+      });
+    };
+    inp.oninput = run;
+    $('qc').onclick = function () { inp.value = ''; run(); inp.focus(); };
+    if (S.q) run();
+  }
+  function mark(name, words) {
+    var out = esc(name);
+    words.forEach(function (w) { if (!w) return;
+      var re = new RegExp('(^|[\\s\'-])(' + esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+      out = out.replace(re, '$1<mark>$2</mark>'); });
+    return out;
+  }
+  function statusText(p) {
+    if (p.status === 'Done') return '<span class="st dn">Done &middot; ' + p.total + '</span>';
+    if (p.status === 'In progress') return '<span class="st ip">In progress</span>';
+    return '<span class="st">Not started</span>';
+  }
+  function wireTabs() {
+    view.querySelectorAll('[data-tab]').forEach(function (b) {
+      b.onclick = function () { S.tab = b.getAttribute('data-tab'); S.school = S.side = null;
+        S.tab === 'prog' ? showProgress() : showHome(); };
+    });
+  }
+
+  function showHome() {
+    if (MODE.school) {
+      S.side = S.cls = null;
+      if (MODE.office) return showProgress();
+      S.school = MODE.school; return showSides();
+    }
+    S.tab = 'mark'; S.school = S.side = S.cls = null;
+    setHeader('', null);
+    var h = S.home, html = tabs() + searchBox() + '<div id="below"><div class="tiles big">';
+    h.schools.forEach(function (s) {
+      var n = 0, d = 0, st = 0;
+      s.sides.forEach(function (sd) { sd.classes.forEach(function (c) { n += c.total; d += c.done; st += c.started; }); });
+      html += '<button class="tile" data-school="' + esc(s.name) + '"><span class="nm">' + esc(showName(s.name)) + '</span>' +
+        '<span class="st">' + d + ' of ' + n + ' done</span>' + pctBar(d, n, st) + '</button>';
+    });
+    h.comingSoon.forEach(function (n) {
+      html += '<button class="tile" disabled><span class="nm">' + esc(n) + '</span><span class="st">Coming soon</span></button>';
+    });
+    html += '</div>';
+    if (!h.schools.length) html += '<p class="empty">No pupils have been loaded yet. Use Office progress &rarr; Load pupil list.</p>';
+    view.innerHTML = html + '</div>'; wireTabs(); wireSearch();
+    view.querySelectorAll('[data-school]').forEach(function (b) {
+      b.onclick = function () { S.school = b.getAttribute('data-school'); showSides(); };
+    });
+  }
+
+  function pctBar(done, total, started) {
+    var w = total ? Math.round(done / total * 100) : 0, w2 = total ? Math.round((done + (started || 0)) / total * 100) : 0;
+    return '<span class="trk">' + (w2 > w ? '<span class="bar ip" style="width:' + w2 + '%"></span>' : '') +
+      (w ? '<span class="bar" style="width:' + w + '%"></span>' : '') + '</span>';
+  }
+  function school() { return S.home.schools.filter(function (s) { return s.name === S.school; })[0]; }
+
+  function showSides() {
+    var sc = school();
+    if (!sc) return showHome();
+    if (sc.sides.length === 1) { S.side = sc.sides[0].name; return showClasses(); }
+    setHeader(MODE.school ? '' : '<b>Oral Exams</b>', MODE.school ? null : showHome);
+    var html = (MODE.school ? tabs() : '<h1 class="page">' + esc(showName(S.school)) + '</h1><div class="meta">Choose a side</div>') + searchBox() + '<div id="below"><div class="tiles big">';
+    sc.sides.forEach(function (sd) {
+      var n = 0, d = 0, st = 0; sd.classes.forEach(function (c) { n += c.total; d += c.done; st += c.started; });
+      html += '<button class="tile" data-side="' + esc(sd.name) + '"><span class="nm">' + esc(sd.name) + '</span>' +
+        '<span class="st">' + sd.classes.length + (sd.classes.length === 1 ? ' class' : ' classes') + ' &middot; ' + d + ' of ' + n + ' done</span>' + pctBar(d, n, st) + '</button>';
+    });
+    view.innerHTML = html + '</div></div>'; wireSearch();
+    view.querySelectorAll('[data-side]').forEach(function (b) {
+      b.onclick = function () { S.side = b.getAttribute('data-side'); showClasses(); };
+    });
+  }
+
+  function showClasses() {
+    var sc = school(); if (!sc) return showHome();
+    var sd = sc.sides.filter(function (x) { return x.name === S.side; })[0]; if (!sd) return showSides();
+    var oneSide = sc.sides.length === 1;
+    setHeader(MODE.school && oneSide ? '' : '<b>' + esc(showName(S.school)) + '</b>', MODE.school && oneSide ? null : function () {
+      S.side = null; oneSide ? showHome() : showSides(); });
+    var html = '<h1 class="page">' + esc(S.side) + '</h1><div class="meta">' + esc(showName(S.school)) + ' &middot; choose a class</div>' +
+      searchBox() + '<div id="below"><div class="tiles two">';
+    sd.classes.forEach(function (c) {
+      html += '<button class="tile" data-cls="' + esc(c.name) + '"><span class="nm">' + esc(clsName(c.name)) + '</span>' +
+        '<span class="st' + (c.done === c.total && c.total ? ' dn' : '') + '">' + c.done + ' of ' + c.total + ' done' +
+        (c.started ? ' &middot; ' + c.started + ' in progress' : '') + '</span>' + pctBar(c.done, c.total, c.started) + '</button>';
+    });
+    view.innerHTML = html + '</div></div>'; wireSearch();
+    view.querySelectorAll('[data-cls]').forEach(function (b) {
+      b.onclick = function () { S.cls = b.getAttribute('data-cls'); showClass(); };
+    });
+  }
+
+  /* ---------------- class list ---------------- */
+  function backToClasses() {
+    S.cls = null;
+    if (!S.home) return loadHome();
+    if (S.school && S.side) showClasses(); else if (S.school) showSides(); else showHome();
+    var t = S.nav, sentAt = Date.now();
+    call('getHome').then(function (h) {
+      S.home = overlayHome(h, sentAt);
+      try { store(HOME_KEY, JSON.stringify(h)); } catch (e) {}
+      if (S.nav !== t) return;
+      if (S.school && S.side) showClasses(); else if (S.school) showSides(); else showHome();
+    }).catch(function () {});
+  }
+
+  function showClass() {
+    setHeader('<b>' + esc(showName(S.school)) + '</b> &middot; ' + esc(S.side), backToClasses);
+    var held = (S.home && S.home.pupils || []).filter(function (p) {
+      return p.school === S.school && p.side === S.side && p.cls === S.cls; });
+    if (held.length) {
+      S.list = held.map(function (p) { return { pupil: p.pupil, year: p.year, book: p.book, status: p.status,
+        total: p.total, max: p.max || (p.book === 'R50' ? 50 : 70) }; })
+        .sort(function (a, b) { return a.pupil.localeCompare(b.pupil); });
+      S.list.forEach(function (p) { var b = S.lastBook[rkey(S.school, S.side, S.cls, p.pupil)]; if (b) p.book = b; });
+      renderClass();
+    } else loading();
+    var t = S.nav, school = S.school, side = S.side, cls = S.cls, sentAt = Date.now();
+    call('getClassBundle', school, side, cls).then(function (r) {
+      r.pupils.forEach(function (p) {
+        var k = rkey(school, side, cls, p.pupil), got = r.recs[p.pupil.toLowerCase()] || {}, mine = S.recCache[k] || {};
+        var merged = {}, ours = null;
+        ['Q70', 'R50'].forEach(function (ex) {
+          var a = got[ex], b = mine[ex];
+          merged[ex] = (b && (!a || (b.updated || 0) > (a.updated || 0))) ? b : a;
+          if (merged[ex] && merged[ex] === b && b !== a && (!ours || (b.updated || 0) > (ours.updated || 0))) ours = b;
+        });
+        if (merged.Q70 || merged.R50) S.recCache[k] = merged;
+        if (ours) {                      // the server has not caught up with this iPad yet
+          var sc = score(ours); p.status = ours.status; p.book = ours.exam; p.total = sc.total; p.max = sc.max;
+        }
+      });
+      r.pupils.forEach(function (p) { overlay(p, school, side, cls, sentAt); });
+      if (r.suggest) S.suggest[rkey(school, side, cls, '')] = r.suggest;
+      S.bundleReady[rkey(school, side, cls, '')] = true;
+      // A save still on its way may not show in the list yet - keep the book just marked.
+      r.pupils.forEach(function (p) { var b = S.lastBook[rkey(school, side, cls, p.pupil)]; if (b) p.book = b; });
+      if (S.nav !== t) return;
+      var before = JSON.stringify(S.list || []);
+      S.list = r.pupils;
+      if (JSON.stringify(S.list) !== before || !held.length) renderClass();
+    }).catch(function (e) { if (!held.length && S.nav === t) fail(e); });
+  }
+
+  function chip(p) {
+    var bk = p.book === 'R50' ? 'Read Book' : 'Qur\u2019an';
+    if (p.status === 'Done') return '<span class="st dn">Done &middot; ' + p.total + ' / ' + p.max + '</span>';
+    if (p.status === 'In progress') return '<span class="st">' + bk + ' &middot; in progress</span>';
+    return '<span class="st">' + bk + (p.extra ? ' &middot; added' : '') + '</span>';
+  }
+
+  function renderClass() {
+    var done = S.list.filter(function (p) { return p.status === 'Done'; }).length;
+    var html = '<h1 class="page">' + esc(clsName(S.cls)) + '</h1><div class="meta">' + S.list.length + ' pupils &middot; ' + done + ' done</div>' +
+      searchBox() + '<div id="below"><div class="tiles small">';
+    S.list.forEach(function (p, i) {
+      html += '<button class="tile" data-i="' + i + '"><span class="nm">' + esc(p.pupil) + '</span>' +
+        chip(p).replace('<span class="st', '<span class="st') +
+        '<span class="trk">' + (p.status === 'Done' ? '<span class="bar" style="width:100%"></span>' :
+         p.status === 'In progress' ? '<span class="bar ip" style="width:50%"></span>' : '') + '</span></button>';
+    });
+    html += '</div><button class="addp" id="addp">+ Add a pupil who is not on this list</button></div>';
+    view.innerHTML = html; wireSearch();
+    view.querySelectorAll('[data-i]').forEach(function (b) {
+      b.onclick = function () { var p = S.list[+b.getAttribute('data-i')]; openPupil(p.pupil, p.year, p.book); };
+    });
+    $('addp').onclick = function () {
+      modal('<h3>Add a pupil</h3><p class="hint">For a child in ' + esc(clsName(S.cls)) + ' who is missing from the list. Tell the office too.</p>' +
+        '<input id="newp" placeholder="Pupil full name"><div class="acts"><button id="mc">Cancel</button><button class="pri" id="mo">Add and mark</button></div>');
+      $('newp').focus();
+      $('mc').onclick = closeModal;
+      $('mo').onclick = function () { var n = $('newp').value.replace(/\s+/g, ' ').trim();
+        if (!n) return; closeModal(); openPupil(n, ''); };
+    };
+  }
+
+  function modal(html) { $('modalBox').innerHTML = html; $('modal').style.display = 'flex'; }
+  function closeModal() { $('modal').style.display = 'none'; }
+
+  /* ---------------- marking ---------------- */
+  function blank(exam) {
+    var r = { school: S.school, side: S.side, cls: S.cls, pupil: S.pupil, year: S.year, exam: exam,
+              examiner: examiner(), status: 'Not started', comments: '' };
+    if (exam === 'Q70') r.q = { tests: [0, 1, 2].map(function () { return { surah: '', taj: null, hif: null, mistakes: [] }; }),
+                                flu: null, fluMistakes: [] };
+    else r.r = { mode: 'any', letters: {}, items: {}, pages: [], mistakes: [] };   // Any pages is the default
+    return r;
+  }
+  function lkey(exam) { return 'oe:rec:' + [S.home.round, S.school, S.side, S.cls, S.pupil, exam].join('|').toLowerCase(); }
+
+  function openPupil(name, year, book) {
+    flushSave();
+    S.pupil = name; S.year = year || ''; S.recs = {};
+    setHeader('<b>' + esc(clsName(S.cls)) + '</b> &middot; ' + esc(S.side), function () { flushSave(); showClass(); });
+    var cached = S.recCache[rkey(S.school, S.side, S.cls, name)];
+    var status = ((S.list || []).filter(function (p) { return p.pupil === name; })[0] || {}).status;
+    var fresh = S.bundleReady[rkey(S.school, S.side, S.cls, '')];      // the class's records have arrived
+    // One iPad per class in practice, so a child not yet started opens at once.
+    var instant = !!(cached || status === 'Not started');
+    var fetch = instant ? Promise.resolve(cached || {}) :
+      (loading('Opening ' + name + '...'), call('getRecord', S.school, S.side, S.cls, name));
+    S.touchedEx = {};
+    fetch.then(function (got) {
+      ['Q70', 'R50'].forEach(function (ex) {
+        var server = got[ex];
+        var local = null; try { local = JSON.parse(store(lkey(ex)) || 'null'); } catch (e) {}
+        // An unsent local copy (iPad locked mid-save) wins over an older server copy.
+        if (local && local.dirty && (!server || (local.rec.updated || 0) >= (server.updated || 0))) {
+          S.recs[ex] = local.rec; queueSave(ex);
+        } else if (server) S.recs[ex] = server;
+        else if (instant && !cached && local && local.rec) S.recs[ex] = local.rec;   // saved earlier on this iPad
+      });
+      S.base = { Q70: S.recs.Q70 ? S.recs.Q70.updated || 0 : 0, R50: S.recs.R50 ? S.recs.R50.updated || 0 : 0 };
+      if (instant) checkOpen(name);
+      // Open on the pupil's book: last marked, else the Pupils tab's Book, else the class default.
+      if (book === 'Q70' || book === 'R50') S.exam = book;
+      else if (S.recs.Q70 && S.recs.R50) S.exam = (S.recs.R50.updated || 0) > (S.recs.Q70.updated || 0) ? 'R50' : 'Q70';
+      else S.exam = S.recs.R50 ? 'R50' : (S.recs.Q70 ? 'Q70' : guessExam());
+      if (!S.recs[S.exam]) S.recs[S.exam] = blank(S.exam);
+      renderMark();
+    }).catch(fail);
+  }
+
+  /* Opened before the class's records arrived: ask the server for this child. If it holds marks this
+     iPad did not know about, show them (or, if the teacher has already started, ask which to keep). */
+  function checkOpen(name) {
+    var at = { school: S.school, side: S.side, cls: S.cls, pupil: name };
+    // Hold this child's saves until the server answers, so a quick first mark cannot overwrite marks
+    // this iPad has not seen yet. Let go after 15 s whatever happens (no signal: saves queue as normal).
+    var pk = rkey(at.school, at.side, at.cls, name), rel = function () { if (S.hold[pk] === tok) delete S.hold[pk]; };
+    var tok = {}; S.hold[pk] = tok; setTimeout(rel, 15000);
+    call('getRecord', at.school, at.side, at.cls, name).then(function (got) {
+      if (S.pupil !== name || S.cls !== at.cls || S.side !== at.side || !$('dock') || $('dock').style.display === 'none') return rel();
+      var base = S.base || {}, edited = S.touchedEx || {};
+      // Server has something newer than the copy this sheet was opened from (or no longer has that copy).
+      var diff = ['Q70', 'R50'].filter(function (ex) {
+        var a = got[ex];
+        if (!a) return base[ex] > 0 && !edited[ex];
+        return (a.updated || 0) > (base[ex] || 0) && !S.mine[a.updated];     // not a copy this iPad sent
+      });
+      if (!diff.length) return rel();
+      var take = function (list) {
+        list.forEach(function (ex) {
+          base[ex] = got[ex] ? (got[ex].updated || 0) : 0; edited[ex] = false;
+          if (got[ex]) { S.recs[ex] = got[ex]; var sc = score(got[ex]);
+            noteSaved(JSON.parse(JSON.stringify(got[ex])), { status: got[ex].status, total: sc.total, max: sc.max }, true); }
+          else { delete S.recs[ex]; store(lkey(ex), null); }
+        });
+        if (!S.recs[S.exam]) S.recs[S.exam] = blank(S.exam);
+        renderMark();
+      };
+      var quiet = diff.filter(function (ex) { return !edited[ex]; }), ask = diff.filter(function (ex) { return edited[ex]; });
+      if (quiet.length) take(quiet);
+      if (!ask.length) return rel();
+      var g = got[ask[0]];
+      modal('<h3>Marks already saved</h3><p>' + esc(name) + ' already has ' + (ask[0] === 'R50' ? 'Read Book' : 'Qur\u2019an') +
+        ' marks saved' + (g ? ' (' + esc(g.status) + ')' : '') + '.</p><div class="acts"><button id="mc">Keep what I just marked</button>' +
+        '<button class="pri" id="mo">Show the saved marks</button></div>');
+      $('mc').onclick = function () { closeModal(); rel(); };
+      $('mo').onclick = function () { closeModal(); if (S.pupil === name) { flushSaveDrop(name, ask); take(ask); } rel(); };
+    }).catch(rel);
+  }
+  /* Drop unsent edits for this child (the teacher chose the saved marks instead). */
+  function flushSaveDrop(name, exams) {
+    Object.keys(S.pending).forEach(function (k) {
+      var r = S.pending[k];
+      if (r && r.pupil === name && r.cls === S.cls && exams.indexOf(r.exam) > -1) { clearTimeout(S.timers[k]); S.pending[k] = null; store(lkey(r.exam), null); }
+    });
+  }
+
+  /* A boy's recent surahs from the teachers' Qur'an sheet ("Al-Naaziat 1 to 24", "Naaziat 1-9", "Abasa")
+     turned into surah names, newest first. */
+  S.suggest = {};
+  /* One cell can hold several surahs ("Surat almasad and nasr", "Abasa - Naas", "Ayah 48 to 56 mudathir") or
+     none ("Failed", "RPRP"): drop numbers and filler words, split on and / to / - / , and match each part. */
+  function sheetToSurahs(t) {
+    var s = String(t || '').toLowerCase().replace(/\d+/g, ' ')
+      .replace(/\b(surah|surat|sura|soorah|ayahs?|ayat|ayaat|all|full|whole|rev|revision|rprp|failed|fail|from|lines?|page|pg|juz|juzz|part|homework|hw|absent|test|new)\b/g, ' ');
+    var out = [];
+    s.split(/\band\b|&|,|\/|\bto\b|[-\u2013+]|\bthen\b/).forEach(function (part) {
+      part = part.replace(/[:().]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (part.length < 3) return;
+      var hit = surahExact(part) || (part.length >= 4 && !isArabic(part) ? surahHits(part)[0] : '');
+      if (!hit) part.split(' ').some(function (w) { return w.length >= 3 && (hit = surahExact(w)); });   // "first pages of surah houd"
+      if (hit && out.indexOf(hit) < 0) out.push(hit);
+    });
+    return out;
+  }
+  window.__oeSheetToSurahs = sheetToSurahs;        // for the tests
+  function suggestionsFor(name) {
+    var all = S.suggest[rkey(S.school, S.side, S.cls, '')]; if (!all || !name) return [];
+    var n = name.toLowerCase().replace(/\s+/g, ' ').trim(), raw = all[n];
+    if (!raw) {                                       // same first name and a close surname
+      var t = n.split(' ');
+      Object.keys(all).some(function (k) { var u = k.split(' ');
+        if (u[0] === t[0] && lev(u[u.length - 1], t[t.length - 1]) <= 2) { raw = all[k]; return true; } return false; });
+    }
+    var out = [];
+    (raw || []).forEach(function (x) { sheetToSurahs(x).forEach(function (s) { if (out.indexOf(s) < 0) out.push(s); }); });
+    return out.slice(0, 4);
+  }
+
+  function guessExam() {
+    var t = (S.cls + ' ' + S.year).toLowerCase();
+    return /read book|beginner|^yl|reception/.test(t) ? 'R50' : 'Q70';
+  }
+
+  function rec() { return S.recs[S.exam]; }
+
+  function score(r) {
+    var t = 0;
+    if (r.exam === 'Q70') {
+      r.q.tests.forEach(function (x) { if (typeof x.taj === 'number') t += x.taj; if (typeof x.hif === 'number') t += x.hif; });
+      if (typeof r.q.flu === 'number') t += r.q.flu;
+      return { total: t, max: 70 };
+    }
+    Object.keys(r.r.letters).forEach(function (k) { if (r.r.letters[k] === 1) t++; });
+    if (r.r.mode === 'any') {                       // any pages: one mark per page heard
+      (r.r.pages || []).forEach(function (p) { if (p && p.v === 1) t++; });
+      return { total: t, max: 50 };
+    }
+    Object.keys(r.r.items).forEach(function (k) { if (r.r.items[k] === 1) t++; });
+    return { total: t, max: 50 };
+  }
+  function grade(p) { return p >= 90 ? 'Excellent' : p >= 70 ? 'Very Good' : p >= 50 ? 'Good' :
+    p >= 30 ? 'Satisfactory' : p >= 10 ? 'Poor' : 'Fail'; }
+
+  function missing(r) {
+    var g = [];
+    if (r.exam === 'Q70') {
+      r.q.tests.forEach(function (x, i) {
+        if (!String(x.surah || '').trim()) g.push('Surah ' + (i + 1) + ' name');
+        if (typeof x.taj !== 'number') g.push('Surah ' + (i + 1) + ' Tajweed');
+        if (typeof x.hif !== 'number') g.push('Surah ' + (i + 1) + ' Hifdh');
+      });
+      if (typeof r.q.flu !== 'number') g.push('Fluency Reading');
+    } else {
+      var nl = 0, ni = 0, i;
+      for (i = 0; i < LETTERS.length; i++) if (r.r.letters[i] !== 1 && r.r.letters[i] !== 0) nl++;
+      if (r.r.mode === 'any') {
+        var pg = pages22(r);
+        pg.forEach(function (p) { if (p.v !== 1 && p.v !== 0) ni++; });
+        if (nl) g.push(nl + ' letter' + (nl > 1 ? 's' : '') + ' not marked');
+        if (ni) g.push(ni + ' page box' + (ni > 1 ? 'es' : '') + ' not filled');
+      } else {
+      for (i = 0; i < ITEMS.length; i++) if (r.r.items[i] !== 1 && r.r.items[i] !== 0) ni++;
+      if (nl) g.push(nl + ' letter' + (nl > 1 ? 's' : '') + ' not marked');
+      if (ni) g.push(ni + ' page item' + (ni > 1 ? 's' : '') + ' not marked');
+      }
+    }
+    return g;
+  }
+
+  function renderMark() {
+    var r = rec();
+    if (!r.examiner && examiner()) r.examiner = examiner();
+    showExaminer();
+    var html = '<div class="who"><h1>' + esc(S.pupil) + '</h1><div class="ar" id="arName"></div></div>' +
+      '<div class="exam"><button data-ex="Q70" class="' + (S.exam === 'Q70' ? 'on' : '') + '">Qur\'an /70</button>' +
+      '<button data-ex="R50" class="' + (S.exam === 'R50' ? 'on' : '') + '">Read Book /50</button></div>' +
+      '<div class="steps" id="jump"></div>';
+    if (S.exam === 'Q70') html += markQ(r); else html += markR(r);
+    view.innerHTML = html;
+    $('dock').style.display = '';
+    document.body.classList.add('marking');
+    var key = S.pupil + '|' + S.cls + '|' + S.exam;
+    if (S.stepFor !== key || !$(S.step)) {
+      S.stepFor = key;
+      if (S.exam === 'Q70') {
+        S.step = 'sec-f';
+        for (var ti = 0; ti < r.q.tests.length; ti++) {
+          var tt = r.q.tests[ti];
+          if (typeof tt.taj !== 'number' || typeof tt.hif !== 'number') { S.step = 'sec-t' + ti; break; }
+        }
+      } else {
+        var allL = LETTERS.every(function (x, i) { return r.r.letters[i] === 1 || r.r.letters[i] === 0; });
+        S.step = allL ? 'sec-p' : 'sec-l';                 // letters done: straight to the pages
+      }
+    }
+    showStep(S.step, true);
+    wireMark();
+    refresh();
+    setSaveState(r.status === 'Not started' ? '' : (S.pending[saveKey(r)] ? 'Saving...' : 'Saved'));
+  }
+
+  /* A surah name too long for its tab: drop "Al-", then step the text down to 11px. */
+  function fitTabs(jb) {
+    var bs = Array.prototype.slice.call(jb.querySelectorAll('[data-j]')), named = jb.querySelectorAll('.tl[data-full]');
+    named.forEach(function (tl) { tl.parentNode.title = tl.getAttribute('data-full'); });
+    if (!named.length || !bs.length) return;
+    // Width a tab's text needs, measured from its spans (a button hides its own overflow, so it can't be asked).
+    var textW = function (btn) {
+      var cs = getComputedStyle(btn), w = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2;
+      Array.prototype.forEach.call(btn.children, function (s) { w += s.getBoundingClientRect().width + (parseFloat(getComputedStyle(s).marginLeft) || 0); });
+      return w;
+    };
+    var jcs = getComputedStyle(jb), room = jb.clientWidth - parseFloat(jcs.paddingLeft) - parseFloat(jcs.paddingRight);
+    // Phone tabs share the bar by content; iPad/laptop tabs are equal quarters.
+    var byContent = getComputedStyle(bs[0]).flexBasis === 'auto';
+    var over = function () {
+      return byContent ? bs.reduce(function (s, x) { return s + textW(x); }, 0) > room
+                       : Math.max.apply(null, bs.map(textW)) * bs.length > room;
+    };
+    if (!over()) return;
+    named.forEach(function (tl) { tl.textContent = tl.getAttribute('data-full').replace(/^(Aal|Al|An|Ar|As|At|Ad|Adh|Ash|Az)-/, ''); });
+    for (var px = 14; over() && px >= 11; px--) named.forEach(function (tl) { tl.style.fontSize = px + 'px'; });
+  }
+
+  /* iPhone-style paging between steps: the page follows the finger 1:1 with the next one alongside,
+     a flick or a drag past a third of the width carries on to it, anything less springs back, and the
+     first/last step stretches a little and bounces back. Up/down scrolling is left alone. */
+  (function swipe() {
+    var g = null, EASE = 'cubic-bezier(0.25, 1, 0.5, 1)';
+    var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function ids() { return S.exam === 'Q70' ? ['sec-t0', 'sec-t1', 'sec-t2', 'sec-f'] : ['sec-l', 'sec-p']; }
+    function band(x, w) { var s = x < 0 ? -1 : 1; return s * (1 - 1 / (Math.abs(x) * 0.55 / w + 1)) * w; }   // rubber band
+    function put(el, x, anim) {
+      if (!el) return;
+      el.style.transition = anim ? 'transform ' + anim + 'ms ' + EASE : 'none';
+      el.style.transform = 'translate3d(' + x + 'px,0,0)';
+    }
+    function clean(els) {
+      els.forEach(function (el) { if (!el) return; el.classList.remove('peek'); el.style.transition = el.style.transform = el.style.position =
+        el.style.top = el.style.left = el.style.width = el.style.height = el.style.boxSizing = el.style.willChange = ''; });
+      document.documentElement.style.overflowX = '';
+    }
+    view.addEventListener('touchstart', function (e) {
+      var t = e.target;
+      if (!document.body.classList.contains('marking') || e.touches.length !== 1 || t.closest('.quick, input, textarea, select, .sugg, .modal')) { g = null; return; }
+      var list = ids(), k = list.indexOf(S.step), cur = $(S.step);
+      if (k < 0 || !cur) { g = null; return; }
+      g = { x: e.touches[0].clientX, y: e.touches[0].clientY, axis: null, k: k, list: list, cur: cur,
+            prev: list[k - 1] ? $(list[k - 1]) : null, next: list[k + 1] ? $(list[k + 1]) : null, dx: 0, hist: [] };
+    }, { passive: true });
+    view.addEventListener('touchmove', function (e) {
+      if (!g) return;
+      var dx = e.touches[0].clientX - g.x, dy = e.touches[0].clientY - g.y;
+      if (!g.axis) {
+        if (Math.abs(dx) < 14 && Math.abs(dy) < 14) return;
+        // only a clearly sideways move pages; a thumb scroll that drifts a little sideways stays a scroll,
+        // and once the browser has started scrolling (not cancelable) the swipe never starts
+        g.axis = e.cancelable && Math.abs(dx) > Math.abs(dy) * 1.8 ? 'x' : 'y';
+        if (g.axis === 'y') { g = null; return; }      // a scroll: leave it to the browser
+        g.w = g.cur.offsetWidth;
+        document.documentElement.style.overflowX = 'hidden';
+        [g.prev, g.next].forEach(function (el) {        // the neighbours sit either side, ready to slide in
+          if (!el) return;
+          el.classList.add('peek'); el.style.position = 'absolute'; el.style.top = g.cur.offsetTop + 'px';
+          el.style.left = g.cur.offsetLeft + 'px'; el.style.width = g.w + 'px'; el.style.boxSizing = 'border-box';
+          el.style.height = g.cur.offsetHeight + 'px';    // same size as the current page, so nothing shrinks
+          el.style.willChange = 'transform';
+        });
+        g.cur.style.willChange = 'transform';
+      }
+      e.preventDefault();                               // horizontal: the page itself does not scroll
+      var off = (dx > 0 && !g.prev) || (dx < 0 && !g.next) ? band(dx, g.w) : dx;
+      g.dx = dx; g.hist.push([Date.now(), dx]); if (g.hist.length > 6) g.hist.shift();
+      put(g.cur, off); put(g.prev, off - g.w); put(g.next, off + g.w);
+    }, { passive: false });
+    function end() {
+      if (!g || g.axis !== 'x') { g = null; return; }
+      var s = g; g = null;
+      var h = s.hist, v = 0;                            // speed over the last few moves, px per ms
+      if (h.length > 1) { var a = h[0], z = h[h.length - 1]; v = (z[1] - a[1]) / Math.max(1, z[0] - a[0]); }
+      var go = 0;
+      if ((s.dx < -s.w / 3 || v < -0.35) && s.next) go = 1;
+      else if ((s.dx > s.w / 3 || v > 0.35) && s.prev) go = -1;
+      var ms = still ? 0 : 320;
+      if (go) {
+        put(s.cur, -go * s.w, ms); put(go > 0 ? s.next : s.prev, 0, ms); put(go > 0 ? s.prev : s.next, go > 0 ? -2 * s.w : 2 * s.w, ms);
+      } else {
+        put(s.cur, 0, ms); put(s.prev, -s.w, ms); put(s.next, s.w, ms);
+      }
+      setTimeout(function () {
+        clean([s.cur, s.prev, s.next]);
+        if (go) showStep(s.list[s.k + go]);
+      }, ms + 20);
+    }
+    view.addEventListener('touchend', end, { passive: true });
+    view.addEventListener('touchcancel', end, { passive: true });
+  })();
+
+  /* One surah on screen at a time; the jump links switch between them. */
+  function showStep(id, quiet) {
+    var el = $(id); if (!el) return;
+    S.step = id;
+    view.querySelectorAll('.step').forEach(function (x) { x.classList.toggle('cur', x.id === id); });
+    var jb = $('jump');
+    if (jb) jb.querySelectorAll('[data-j]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-j') === id); });
+    if (!quiet) { window.scrollTo({ top: 0, behavior: 'smooth' }); refresh(); }
+  }
+
+  function marksRow(id, val) {
+    var h = '<div class="marks" data-m="' + id + '">';
+    for (var n = 1; n <= 10; n++) h += '<button data-v="' + n + '" class="' + (val === n ? 'on' : '') + '">' + n + '</button>';
+    // 0 is rare: it only appears under the keys once 1 is chosen (or when a 0 is already saved)
+    return h + '</div><div class="zero" data-z="' + id + '"' + (val === 0 || val === 1 ? '' : ' hidden') + '>' +
+      '<button data-v="0" class="' + (val === 0 ? 'on' : '') + '">0 &middot; Fail (no effort)</button></div>';
+  }
+  function mistBlock(id, list, quick) {
+    var h = '<div class="lab">Mistakes <span class="opt">(optional)</span></div><div class="mrow"><input class="ay" data-mi="' + id +
+      '" placeholder="Ayah no." inputmode="decimal" enterkeyhint="done" aria-label="Ayah number, or type a mistake and press return"><div class="quick">';
+    quick.forEach(function (q) { h += '<button data-mq="' + id + '">' + esc(q) + '</button>'; });
+    h += '</div></div><ul class="mlist" data-ml="' + id + '">' + mistItems(list) + '</ul>';
+    return h;
+  }
+  function mistItems(list) {
+    return list.map(function (m, i) { return '<li><span>' + esc(m) + '</span><button data-del="' + i + '" aria-label="Remove">&times;</button></li>'; }).join('');
+  }
+
+  function markQ(r) {
+    var guide = '<span class="aside"><button data-guide="1">Mark guide</button></span>';
+    var h = '';
+    r.q.tests.forEach(function (t, i) {
+      h += '<div class="step" id="sec-t' + i + '">' +
+        '<div class="picker"><div class="pick"><label for="su' + i + '">Surah</label><input id="su' + i + '" data-surah="' + i +
+        '" placeholder="Choose or type" value="' + esc(t.surah) + '" dir="auto" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">' +
+        '<span class="caret" aria-hidden="true"></span></div>' +
+        '<div class="sugg" id="sg' + i + '" role="listbox" hidden></div></div>' +
+        '<div class="pick-hint" id="hint' + i + '">Name, Arabic or number</div>' +
+        '<div class="lab">Tajweed' + guide + '</div>' + marksRow('taj' + i, t.taj) +
+        '<div class="lab">Hifdh</div>' + marksRow('hif' + i, t.hif) +
+        mistBlock('t' + i, t.mistakes, QUICK_Q) + '</div>';
+    });
+    h += '<div class="step" id="sec-f"><div class="lab">Fluency reading' + guide + '</div>' + marksRow('flu', r.q.flu) +
+      mistBlock('f', r.q.fluMistakes, QUICK_Q) +
+      '<div class="cmt"><div class="lab">Comments</div><textarea id="cmt" placeholder="For the report (optional)">' +
+      esc(r.comments || '') + '</textarea></div></div>';
+    return h;
+  }
+  function showGuide() {
+    modal('<h3>Mark guide</h3><div class="guide">' +
+      '<b>9-10</b><span>Excellent - no major errors made</span><b>7-8</b><span>Very good - little or some errors</span>' +
+      '<b>5-6</b><span>Good - a few errors, made effort to correct</span><b>3-4</b><span>Satisfactory - made effort to correct errors</span>' +
+      '<b>1-2</b><span>Poor - little effort to correct errors</span><b>0</b><span>Fail - no effort</span></div>' +
+      '<p class="hint">Incorrect answers must be noted down for feedback.</p><div class="acts"><button class="pri" id="mc">OK</button></div>');
+    $('mc').onclick = closeModal;
+  }
+
+  function markR(r) {
+    var h = '<div class="step" id="sec-l"><div class="block"><div class="lab">Arabic letters<span class="aside" id="sub-l"></span></div>' +
+      '<p class="hint" style="margin:0 0 10px">Tap once: recognised. Again: not recognised. Again: clear.</p><div class="letters">';
+    LETTERS.forEach(function (l, i) { h += '<button data-l="' + i + '" class="' + cls01(r.r.letters[i]) + '">' + l +
+      '<span class="tick">' + tick(r.r.letters[i]) + '</span></button>'; });
+    h += '</div><button class="smallbtn" id="allL">Mark the rest as recognised</button></div></div>';
+    var any = r.r.mode === 'any';
+    h += '<div class="step" id="sec-p"><div class="block"><div class="lab">Read Book pages<span class="aside" id="sub-p"></span></div>' +
+      '<div class="tabs pm"><button data-pm="any" class="' + (any ? 'on' : '') + '">Any pages</button>' +
+      '<button data-pm="book" class="' + (any ? '' : 'on') + '">Set pages</button></div>';
+    if (!any) {
+      h += '<p class="hint" style="margin:10px 0 10px">One mark each. Tap once: passed. Again: not passed. Again: clear.</p><div class="items">';
+      ITEMS.forEach(function (n, i) { h += '<button data-it="' + i + '" class="' + cls01(r.r.items[i]) + '"><span>' + esc(n) +
+        '</span><span class="tick">' + tick(r.r.items[i]) + '</span></button>'; });
+      h += '</div><button class="smallbtn" id="allP">Mark the rest as passed</button></div>';
+    } else {
+      h += '<p class="hint" style="margin:10px 0 6px">For a child on an earlier page. Tick or cross each box, one mark each. Page numbers are optional: choose one in the first box and the rest follow on.</p><div class="pages">';
+      pages22(r).forEach(function (p, i) {
+        var opts = '<option value="">\u2013</option>';
+        for (var n = 1; n <= BOOK_PAGES; n++) opts += '<option value="' + n + '"' + (n === p.p ? ' selected' : '') + '>' + n + '</option>';
+        h += '<div class="pg"><label for="pg' + i + '">Page</label><select id="pg' + i + '" data-pg="' + i + '">' + opts + '</select>' +
+          '<button data-pv="' + i + '" data-v="1" class="' + (p.v === 1 ? 'yes' : '') + '" aria-label="Passed">&#10003;</button>' +
+          '<button data-pv="' + i + '" data-v="0" class="' + (p.v === 0 ? 'no' : '') + '" aria-label="Not passed">&#10007;</button></div>';
+      });
+      h += '</div></div>';
+    }
+    h += '<div class="cmt"><div class="lab">Comments</div><textarea id="cmt" placeholder="For the report (optional)">' +
+      esc(r.comments || '') + '</textarea></div></div>';
+    return h;
+  }
+  /* the paper's 22 Page Number | Mark boxes; older records with fewer are padded */
+  function pages22(r) {
+    var pg = r.r.pages = r.r.pages || [];
+    while (pg.length < 22) pg.push({ p: null, v: null });
+    if (pg.length > 22) pg.length = 22;
+    return pg;
+  }
+  function cls01(v) { return v === 1 ? 'yes' : v === 0 ? 'no' : ''; }
+  function tick(v) { return v === 1 ? '&#10003;' : v === 0 ? '&#10007;' : ''; }
+
+  function mistList(id) {
+    var r = rec();
+    if (id === 'f') return r.q.fluMistakes;
+    if (id === 'r') return r.r.mistakes;
+    return r.q.tests[+id.slice(1)].mistakes;
+  }
+
+  function wireMark() {
+    var r = rec();
+    view.querySelectorAll('[data-ex]').forEach(function (b) {
+      b.onclick = function () {
+        var ex = b.getAttribute('data-ex'); if (ex === S.exam) return;
+        flushSave(); S.exam = ex;
+        if (!S.recs[ex]) S.recs[ex] = blank(ex);
+        renderMark(); window.scrollTo(0, 0);
+      };
+    });
+    view.querySelectorAll('[data-guide]').forEach(function (b) { b.onclick = showGuide; });
+    $('cmt').oninput = function () { rec().comments = this.value; changed(); };
+
+    view.querySelectorAll('[data-m]').forEach(function (row) {
+      var id = row.getAttribute('data-m'), zero = view.querySelector('[data-z="' + id + '"]');
+      var keys = Array.prototype.slice.call(row.querySelectorAll('button')).concat(zero ? [zero.querySelector('button')] : []);
+      keys.forEach(function (b) {
+        b.onclick = function () {
+          var v = +b.getAttribute('data-v'), q = rec().q, cur;
+          if (id === 'flu') cur = q.flu; else cur = q.tests[+id.slice(3)][id.slice(0, 3)];
+          var nv = v;                                       // re-tapping the same number keeps it (no accidental clears)
+          if (id === 'flu') q.flu = nv; else q.tests[+id.slice(3)][id.slice(0, 3)] = nv;
+          keys.forEach(function (x) { x.classList.toggle('on', +x.getAttribute('data-v') === nv); });
+          if (zero) zero.hidden = !(nv === 0 || nv === 1);
+          changed();
+        };
+      });
+    });
+    view.querySelectorAll('[data-surah]').forEach(function (inp) {
+      var i = +inp.getAttribute('data-surah'), box = $('sg' + i);
+      var row = function (n, now) {
+        var k = SURAHS.indexOf(n);
+        return '<button type="button" role="option" data-pick="' + esc(n) + '"><span class="sno">' + (k + 1) + '</span><span class="en">' + esc(n) +
+          (now ? '<span class="now">on now</span>' : '') + '</span><span class="sar" lang="ar">' + SURAHS_AR[k] + '</span></button>';
+      };
+      var matches = function (q) {
+        q = q.trim();
+        if (!q) return SURAHS.slice().reverse();          // An-Nas first: most children are in Juz 'Amma, then 29
+        if (/^\d+$/.test(q)) {                         // surah number: exact first, then numbers starting with it
+          var n = +q, out = n >= 1 && n <= 114 ? [SURAHS[n - 1]] : [];
+          SURAHS.forEach(function (s, k) { if (String(k + 1).indexOf(q) === 0 && k + 1 !== n) out.push(s); });
+          return out;
+        }
+        if (isArabic(q)) {
+          var a = arKey(q); if (!a) return SURAHS.slice();
+          var al = /^\u0627\u0644/.test(arNorm(q));
+          var rank = function (s) { var w = SURAHS_AR[SURAHS.indexOf(s)];
+            return (arKey(w) === a ? 0 : 2) + (al && !/^\u0627\u0644/.test(arNorm(w)) ? 1 : 0); };
+          return SURAHS.filter(function (s, j) { return arKey(SURAHS_AR[j]).indexOf(a) === 0; })
+            .map(function (s, k) { return [rank(s), k, s]; }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1]; }).map(function (x) { return x[2]; });
+        }
+        return surahHits(q);
+      };
+      var open = function () {
+        var q = inp.value.trim();
+        if (SURAHS.indexOf(q) > -1) q = '';             // a surah already chosen: show the whole list to change it
+        var hits = matches(q), sug = (suggestionsFor(S.pupil) || []).filter(function (s) { return hits.indexOf(s) > -1; });
+        var rest = hits.filter(function (s) { return sug.indexOf(s) < 0; });
+        var h = '';
+        if (sug.length) h += '<div class="grp">Suggested</div>' + sug.map(function (s, k) { return row(s, k === 0 && !q); }).join('');
+        if (rest.length) h += '<div class="grp">' + (q ? 'Matches' : 'All surahs') + '</div>' + rest.map(function (s) { return row(s); }).join('');
+        box.innerHTML = h || '<div class="none">No surah found. Keep typing, or leave it as typed.</div>';
+        box.hidden = false; box.scrollTop = 0;
+        var first = box.querySelector('[data-pick]'); if (first && q) first.classList.add('hi');
+        box.querySelectorAll('[data-pick]').forEach(function (b) {
+          b.onpointerdown = function (e) { e.preventDefault(); };      // keep the box focused until the pick lands
+          b.onclick = function () { inp.value = b.getAttribute('data-pick'); close();
+            rec().q.tests[i].surah = inp.value; changed(); inp.blur(); };
+        });
+      };
+      var close = function () { box.hidden = true; box.innerHTML = ''; };
+      inp.onfocus = open;
+      inp.onclick = function () { if (box.hidden) open(); };
+      inp.oninput = function () { rec().q.tests[i].surah = inp.value.trim(); changed(); open(); };
+      inp.onkeydown = function (e) {
+        if (e.key === 'Escape') { close(); inp.blur(); return; }
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var first = box.querySelector('[data-pick]');
+        if (first && inp.value.trim() && SURAHS.indexOf(inp.value.trim()) < 0) { first.click(); return; }
+        close(); inp.blur();
+      };
+      inp.onblur = function () {
+        var ex = surahExact(inp.value);
+        if (ex && ex !== inp.value.trim()) { inp.value = ex; rec().q.tests[i].surah = ex; changed(); }
+        setTimeout(function () { if (document.activeElement !== inp) close(); }, 200);
+      };
+    });
+    function addMistake(id, text) {
+      var inp = view.querySelector('[data-mi="' + id + '"]');
+      var typed = inp.value.trim(), m;
+      var ay = ayahLabel(typed);
+      if (text) m = typed ? (ay || typed) + ' \u00b7 ' + text : text;
+      else m = typed;
+      if (!m) { inp.focus(); return; }
+      mistList(id).push(m); inp.value = '';
+      view.querySelector('[data-ml="' + id + '"]').innerHTML = mistItems(mistList(id));
+      changed();
+    }
+    /* "4" -> Ayah 4; "3, 5" or "3 5" -> Ayahs 3, 5; "3-5" -> Ayahs 3\u20135. Anything else: '' (kept as typed). */
+    function ayahLabel(t) {
+      t = String(t || '').replace(/\s*([,\-\u2013])\s*/g, '$1').replace(/,+$/, '').trim();
+      if (!/^\d+([,\s\-\u2013]+\d+)*$/.test(t)) return '';
+      var parts = t.split(/[,\s]+/).map(function (p) { return p.replace(/[\-\u2013]+/, '\u2013'); });
+      return (parts.length === 1 && parts[0].indexOf('\u2013') < 0 ? 'Ayah ' : 'Ayahs ') + parts.join(', ');
+    }
+    view.querySelectorAll('[data-mi]').forEach(function (inp) {
+      inp.oninput = function () {                    // the number pad's dot key separates ayahs
+        if (inp.value.indexOf('.') > -1) inp.value = inp.value.replace(/\s*\.\s*/g, ', ').replace(/^, /, '').replace(/(, )+/g, ', ');
+      };
+      inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); addMistake(inp.getAttribute('data-mi')); } };
+    });
+    view.querySelectorAll('[data-mq]').forEach(function (b) { b.onclick = function () { addMistake(b.getAttribute('data-mq'), b.textContent); }; });
+    view.querySelectorAll('[data-ml]').forEach(function (ul) {
+      ul.onclick = function (e) {
+        var d = e.target.closest('[data-del]'); if (!d) return;
+        var id = ul.getAttribute('data-ml'); mistList(id).splice(+d.getAttribute('data-del'), 1);
+        ul.innerHTML = mistItems(mistList(id)); changed();
+      };
+    });
+
+    function cycle(b, obj, idx) {
+      var v = obj[idx]; var nv = v === 1 ? 0 : v === 0 ? undefined : 1;
+      if (nv === undefined) delete obj[idx]; else obj[idx] = nv;
+      b.className = cls01(nv); b.querySelector('.tick').innerHTML = tick(nv);
+      changed();
+    }
+    view.querySelectorAll('[data-l]').forEach(function (b) { b.onclick = function () { cycle(b, rec().r.letters, +b.getAttribute('data-l')); }; });
+    view.querySelectorAll('[data-it]').forEach(function (b) { b.onclick = function () { cycle(b, rec().r.items, +b.getAttribute('data-it')); }; });
+    if ($('allL')) $('allL').onclick = function () { fillRest(rec().r.letters, LETTERS.length); renderMark(); changed(); };
+    if ($('allP')) $('allP').onclick = function () { fillRest(rec().r.items, ITEMS.length); renderMark(); changed(); };
+    // Read Book: set pages / any pages
+    var keepY = function (fn) { var y = window.scrollY; fn(); renderMark(); window.scrollTo(0, y); changed(); };
+    view.querySelectorAll('[data-pm]').forEach(function (b) {
+      b.onclick = function () {
+        var m = b.getAttribute('data-pm'), rr = rec().r; if ((rr.mode || 'book') === m) return;
+        keepY(function () { rr.mode = m; if (m === 'any') pages22(rec()); });
+      };
+    });
+    view.querySelectorAll('[data-pg]').forEach(function (sel) {
+      sel.onchange = function () {
+        var pg = pages22(rec()), i = +sel.getAttribute('data-pg');
+        keepY(function () {
+          pg[i].p = sel.value ? +sel.value : null;
+          // follow on: fill the empty boxes after this one with the next pages
+          for (var j = i + 1, n = pg[i].p; n && j < pg.length && !pg[j].p && n < BOOK_PAGES; j++) pg[j].p = ++n;
+        });
+      };
+    });
+    view.querySelectorAll('[data-pv]').forEach(function (b) {
+      b.onclick = function () {
+        var p = pages22(rec())[+b.getAttribute('data-pv')], v = +b.getAttribute('data-v');
+        keepY(function () { p.v = p.v === v ? null : v; });              // tap the same again to clear
+      };
+    });
+
+
+    $('finishBtn').onclick = finish;
+  }
+  function fillRest(obj, n) { for (var i = 0; i < n; i++) if (obj[i] !== 1 && obj[i] !== 0) obj[i] = 1; }
+
+  /* "Already tested in Surah 1", or an ayah number past the end of the surah. */
+  function surahCanon(s) { s = String(s || '').trim(); return SURAHS.indexOf(s) > -1 ? s : (surahExact(s) || s.toLowerCase()); }
+  function checkSurahs(r) {
+    if (!r || r.exam !== 'Q70') return;
+    r.q.tests.forEach(function (t, i) {
+      var hint = $('hint' + i); if (!hint) return;
+      var canon = surahCanon(t.surah), msg = '';
+      if (canon) r.q.tests.forEach(function (u, j) { if (!msg && j !== i && surahCanon(u.surah) === canon) msg = 'Already tested in Surah ' + (j + 1); });
+      hint.textContent = msg || 'Name, Arabic or number';
+      hint.classList.toggle('warn', !!msg);
+    });
+  }
+  function refresh() {
+    var r = rec(), sc = score(r), pct = Math.round(sc.total / sc.max * 100);
+    checkSurahs(r);
+    $('tot').innerHTML = sc.total + '<small>/ ' + sc.max + (missing(r).length ? ' so far' : '') + '</small>';
+    var miss = missing(r);
+    // Name what is still blank, so "66 / 70" is never read as "4 marks short".
+    $('grd').textContent = miss.length
+      ? 'Still to fill in: ' + miss.slice(0, 2).join(', ') + (miss.length > 2 ? ' and ' + (miss.length - 2) + ' more' : '')
+      : grade(pct) + ' \u00b7 ' + pct + '%';
+    // Bottom bar: Next through the surahs, Finish on the last page.
+    var order = r.exam === 'Q70' ? ['sec-t0', 'sec-t1', 'sec-t2', 'sec-f'] : ['sec-l', 'sec-p'];
+    var at = order.indexOf(S.step), fb = $('finishBtn'), pb = $('prevBtn');
+    var nameOf = function (id) { return id === 'sec-f' ? 'Fluency' : id === 'sec-l' ? 'Letters' : id === 'sec-p' ? 'Pages' : 'Surah ' + (+id.slice(5) + 1); };
+    pb.style.display = at > 0 ? '' : 'none';
+    if (at > 0) { pb.innerHTML = '&larr;<span class="pw"> ' + nameOf(order[at - 1]) + '</span>'; pb.onclick = function () { showStep(order[at - 1]); }; }
+    if (at > -1 && at < order.length - 1) {
+      fb.innerHTML = 'Next: ' + nameOf(order[at + 1]) + ' &rarr;'; fb.className = 'main';
+      fb.onclick = function () { showStep(order[at + 1]); };
+    } else {
+      fb.onclick = finish;
+      if (r.status === 'Done') { fb.textContent = 'Finished \u00b7 back to class'; fb.className = 'main done'; }
+      else { fb.textContent = 'Finish'; fb.className = 'main'; }
+    }
+    var ar = $('arName');
+    if (ar) ar.textContent = (r.exam === 'Q70' && at > -1 && at < 3) ? surahAr(r.q.tests[at].surah) : '';
+    // section sub-totals and jump bar
+    var jump = [];
+    if (r.exam === 'Q70') {
+      r.q.tests.forEach(function (t, i) {
+        var s = (t.taj || 0) + (t.hif || 0), full = typeof t.taj === 'number' && typeof t.hif === 'number' && t.surah;
+        var known = SURAHS.indexOf(String(t.surah || '').trim()) > -1 ? String(t.surah).trim() : surahExact(t.surah);
+        jump.push(['sec-t' + i, known || 'Surah ' + (i + 1), full, full ? s : '', known]);
+      });
+      jump.push(['sec-f', 'Fluency', typeof r.q.flu === 'number', typeof r.q.flu === 'number' ? r.q.flu : '']);
+    } else {
+      var lc = 0, lm = 0, ic = 0, im = 0;
+      LETTERS.forEach(function (x, i) { if (r.r.letters[i] === 1) lc++; if (r.r.letters[i] === 1 || r.r.letters[i] === 0) lm++; });
+      ITEMS.forEach(function (x, i) { if (r.r.items[i] === 1) ic++; if (r.r.items[i] === 1 || r.r.items[i] === 0) im++; });
+      if ($('sub-l')) $('sub-l').textContent = lm + ' of 28 marked \u00b7 ' + lc + ' recognised';
+      var pDone = im, pPass = ic;
+      if (r.r.mode === 'any') {
+        var pgs = pages22(r), pm = 0, pp = 0;
+        pgs.forEach(function (p) { if (p.v === 1 || p.v === 0) pm++; if (p.v === 1) pp++; });
+        pDone = pm; pPass = pp;
+      }
+      if ($('sub-p')) $('sub-p').textContent = pDone + ' of 22 marked \u00b7 ' + pPass + ' passed';
+      jump.push(['sec-l', 'Letters', lm === 28, lm === 28 ? lc : '']);
+      jump.push(['sec-p', 'Pages', pDone === 22, pDone === 22 ? pPass : '']);
+    }
+    var jb = $('jump');
+    if (jb) {
+      jb.style.display = jump.length ? '' : 'none';
+      jb.innerHTML = jump.map(function (j) { return '<button data-j="' + j[0] + '" class="' + (j[2] ? 'ok' : '') + (j[0] === S.step ? ' on' : '') + '">' +
+        '<span class="tl"' + (j[4] ? ' data-full="' + esc(j[4]) + '"' : '') + '>' + esc(j[1]) + '</span>' +
+        (j[3] !== '' && j[3] != null ? '<span class="sc">' + j[3] + '</span>' : '') + '</button>'; }).join('');
+      fitTabs(jb);
+      jb.querySelectorAll('[data-j]').forEach(function (b) {
+        b.onclick = function () {
+          var id = b.getAttribute('data-j'), el = $(id);
+          if (el && el.classList.contains('step')) showStep(id);
+          else if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+      });
+    }
+  }
+
+  /* ---------------- autosave ---------------- */
+  S.pending = {}; S.inflight = {}; S.timers = {}; S.lastBook = {}; S.mine = {}; S.hold = {};
+
+  function changed() {
+    var r = rec();
+    if (r.status === 'Not started') r.status = 'In progress';
+    r.updated = Date.now();
+    S.lastBook[rkey(r.school, r.side, r.cls, r.pupil)] = r.exam;
+    (S.touchedEx = S.touchedEx || {})[r.exam] = true;
+    store(lkey(r.exam), JSON.stringify({ dirty: true, rec: r }));
+    noteSaved(JSON.parse(JSON.stringify(r)), null);
+    refresh();
+    queueSave(r.exam);
+  }
+
+  function saveKey(r) { return rkey(r.school, r.side, r.cls, r.pupil) + '|' + r.exam; }
+  function isOpen(r) { return S.pupil === r.pupil && S.cls === r.cls && S.side === r.side && S.exam === r.exam; }
+
+  function queueSave(exam, delay) {
+    var r = S.recs[exam], k = saveKey(r);
+    S.pending[k] = r;
+    setSaveState('Saving...');
+    clearTimeout(S.timers[k]);
+    S.timers[k] = setTimeout(function () { sendSave(k); }, delay == null ? 900 : delay);
+  }
+
+  function flushSave() {
+    Object.keys(S.pending).forEach(function (k) { if (S.pending[k]) { clearTimeout(S.timers[k]); sendSave(k); } });
+  }
+
+  function sendSave(k) {
+    var r = S.pending[k];
+    if (!r) return;
+    if (S.hold[rkey(r.school, r.side, r.cls, r.pupil)] || S.inflight[k]) { clearTimeout(S.timers[k]); S.timers[k] = setTimeout(function () { sendSave(k); }, 500); return; }
+    S.pending[k] = null;
+    S.inflight[k] = true;
+    var copy = JSON.parse(JSON.stringify(r));
+    S.mine[copy.updated] = 1;
+    var key = 'oe:rec:' + [S.home.round, copy.school, copy.side, copy.cls, copy.pupil, copy.exam].join('|').toLowerCase();
+    call('saveRecord', copy).then(function (res) {
+      S.inflight[k] = false;
+      var live = S.recs[copy.exam];
+      if (live && isOpen(copy) && res.status !== live.status && copy.status === live.status) {
+        live.status = res.status; refresh();
+      }
+      noteSaved(copy, res, true);
+      if (!S.pending[k]) {
+        store(key, JSON.stringify({ dirty: false, rec: copy }));
+        if (isOpen(copy)) setSaveState('Saved');
+      }
+    }).catch(function (err) {
+      S.inflight[k] = false;
+      if (!S.pending[k]) S.pending[k] = r;
+      if (isOpen(copy)) setSaveState('Not saved yet - retrying', true);
+      else toast(copy.pupil + ' not saved yet - retrying', 2500);
+      clearTimeout(S.timers[k]);
+      S.timers[k] = setTimeout(function () { sendSave(k); }, 4000);
+    });
+  }
+
+  function setSaveState(t, err) { var el = $('ss'); if (!el) return; el.textContent = t; el.className = 'savestate' + (err ? ' err' : ''); }
+
+  document.addEventListener('visibilitychange', function () { if (document.hidden) flushSave(); });
+  window.addEventListener('pagehide', flushSave);
+
+  function finish() {
+    var r = rec();
+    if (r.status === 'Done') { noteSaved(JSON.parse(JSON.stringify(r)), null); flushSave(); showClass(); return; }
+    var g = missing(r);
+    if (g.length) {
+      modal('<h3>Not finished yet</h3><p>Still to mark:</p><p><b>' + esc(g.join(', ')) + '</b></p>' +
+        '<p class="hint">Everything so far is saved. Come back to this pupil any time.</p><div class="acts"><button class="pri" id="mc">OK</button></div>');
+      $('mc').onclick = closeModal; return;
+    }
+    // Done at once on this iPad; the save follows in the background and keeps retrying until it lands.
+    r.status = 'Done'; r.updated = Date.now();
+    store(lkey(r.exam), JSON.stringify({ dirty: true, rec: r }));
+    var sc = score(r), pct = Math.round(sc.total / sc.max * 100);
+    noteSaved(JSON.parse(JSON.stringify(r)), { status: 'Done', total: sc.total, max: sc.max });
+    toast(S.pupil + ' finished: ' + sc.total + ' / ' + sc.max + ' (' + grade(pct) + ')', 3000);
+    var k = saveKey(r);
+    clearTimeout(S.timers[k]);
+    S.pending[k] = r;
+    sendSave(k);
+    showClass();
+  }
+
+  /* ---------------- office progress ---------------- */
+  function showProgress() {
+    S.tab = 'prog';
+    setHeader('', null);
+    var h = S.home;
+    var html = tabs();
+    if (!h.schools.length) html += '<p class="empty">No pupils loaded yet.</p>';
+    h.schools.filter(function (s) { return !MODE.school || s.name === MODE.school; }).forEach(function (s) {
+      html += '<h2 class="sec">' + esc(MODE.school ? 'Classes' : showName(s.name)) + '</h2><table class="prog"><tr><th>Side</th><th>Class</th><th>Done</th><th>In progress</th><th>Not started</th></tr>';
+      s.sides.forEach(function (sd) {
+        sd.classes.forEach(function (c) {
+          html += '<tr><td>' + esc(sd.name) + '</td><td>' + esc(clsName(c.name, s.name, sd.name)) + '</td><td class="n"><b>' + c.done + '</b> of ' + c.total +
+            '</td><td class="n">' + c.started + '</td><td class="n">' + (c.total - c.done - c.started) + '</td></tr>';
+        });
+      });
+      html += '</table>';
+    });
+    html += '<p style="margin-top:18px"><a class="link" href="' + esc(h.sheetUrl) + '" target="_blank" rel="noopener">Open the marks spreadsheet</a></p>' +
+      '<p><button class="smallbtn" id="refresh">Refresh</button> <button class="smallbtn" id="loadp">Load pupil list</button></p>';
+    view.innerHTML = html; wireTabs();
+    $('refresh').onclick = function () { loading(); var sentAt = Date.now(); call('getHomeFresh').then(function (x) { S.home = overlayHome(x, sentAt); keepHome(); showProgress(); }).catch(fail); };
+    $('loadp').onclick = function () {
+      modal('<h3>Load pupil list</h3><p class="hint">Paste rows from a spreadsheet or CSV with a header row: School, Side, Class, Pupil, Year group, Qur\'an class. ' +
+        'This replaces the list for the schools in the paste. Marks already saved are kept.</p>' +
+        '<textarea id="csv" style="min-height:180px"></textarea><div class="acts"><button id="mc">Cancel</button><button class="pri" id="mo">Load</button></div>');
+      $('mc').onclick = closeModal;
+      $('mo').onclick = function () {
+        var t = $('csv').value; if (!t.trim()) return;
+        $('mo').disabled = true;
+        call('loadPupils', t, MODE.school || 'Saturday School').then(function (res) {
+          closeModal(); toast(res.msg, 4000);
+          if (res.ok) { var sentAt = Date.now(); call('getHome').then(function (x) { S.home = overlayHome(x, sentAt); showProgress(); }); }
+        }).catch(function (e) { closeModal(); toast('Failed: ' + (e && e.message || e), 5000); });
+      };
+    };
+  }
+
+  $('modal').onclick = function (e) { if (e.target === $('modal')) closeModal(); };
+  if (IN_GOOGLE && google.script.url) {
+    google.script.url.getLocation(function (loc) { applyMode(loc && loc.parameter); loadHome(); });
+  } else {
+    var qp = {};
+    String(location.search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
+      var i = kv.indexOf('='); if (i > 0) qp[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1));
+    });
+    applyMode(window.OE_PARAMS || qp); loadHome();
+  }
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator && !(window.google && google.script)) {
+    // When a new version of the app arrives, reload once so nobody runs the old one.
+    var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController || reloaded) return; reloaded = true; location.reload();
+    });
+    navigator.serviceWorker.register('sw.js').then(function (reg) { reg.update(); }).catch(function () {});
+  }
+</script>
+</body>
+</html>
