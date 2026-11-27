@@ -1,6 +1,6 @@
 
-var CACHE = 'quran-exams-v30';
-var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
+var CACHE = 'quran-exams-v31';
+var FILES = ['./', 'index.html', 'manifest.webmanifest', 'favicon-32.png', 'icon-180.png', 'icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });
